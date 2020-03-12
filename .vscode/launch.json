@@ -1,0 +1,21 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Jest watch tests for current file",
+      "program": "${workspaceRoot}/node_modules/jest/bin/jest.js",
+      "args": [
+        "/${fileBasenameNoExtension}",
+        "--runInBand",
+        "--verbose",
+        "-c",
+        "./jest.config.js",
+        "--watch"
+      ],
+      "console": "externalTerminal",
+      "internalConsoleOptions": "neverOpen"
+    }
+  ]
+}

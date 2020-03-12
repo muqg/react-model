@@ -1,0 +1,11 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "declaration": true,
+    "declarationDir": "./lib/types",
+    "module": "es6",
+    "outDir": "./lib/esm",
+    "target": "ESNext"
+  },
+  "exclude": ["**/__tests__/**"]
+}

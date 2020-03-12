@@ -1,0 +1,45 @@
+{
+  "name": "@muqg/react-model",
+  "version": "0.1.0",
+  "author": "Lubo Chenchev",
+  "license": "MIT",
+  "main": "lib/cjs/index.js",
+  "module": "lib/esm/index.js",
+  "types": "lib/types/index.d.ts",
+  "repository": "https://github.com/muqg/react-model",
+  "homepage": "https://github.com/muqg/react-model",
+  "keywords": [
+    "react",
+    "form",
+    "model",
+    "hooks"
+  ],
+  "files": [
+    "lib/**/*"
+  ],
+  "scripts": {
+    "build": "npm run build:cjs && npm run build:esm",
+    "build:cjs": "ncc build src/index.ts -o lib/cjs -m -e react",
+    "build:esm": "tsc -p tsconfig.build.json",
+    "test": "jest",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@testing-library/react": "^9.5.0",
+    "@testing-library/react-hooks": "^3.2.1",
+    "@testing-library/user-event": "^10.0.0",
+    "@types/jest": "^25.1.4",
+    "@types/react": "^16.9.23",
+    "@zeit/ncc": "^0.21.1",
+    "jest": "^25.1.0",
+    "react": "^16.13.0",
+    "react-dom": "^16.13.0",
+    "react-test-renderer": "^16.13.0",
+    "ts-jest": "^25.2.1",
+    "typescript": "^3.8.3"
+  },
+  "peerDependencies": {
+    "react": "^16.8",
+    "react-dom": "^16.8"
+  }
+}
