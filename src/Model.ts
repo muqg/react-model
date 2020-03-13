@@ -120,10 +120,14 @@ export class Model<T extends object = any> implements Model<T> {
 
   /**
    * Handle a model field change event.
+   *
+   * @param event Input change or focus event.
+   * @param shouldValidate Whether the value should be validated. Enabled
+   * by default.
    */
-  handleChange = (event: ParseableEvent): void => {
+  handleChange = (event: ParseableEvent, shouldValidate?: boolean): void => {
     const key = event.target.name || event.target.id
-    this.setFieldValue(key, event)
+    this.setFieldValue(key, event, shouldValidate)
   }
 
   /**
@@ -131,8 +135,10 @@ export class Model<T extends object = any> implements Model<T> {
    *
    * @param name Target field name using dot notation.
    * @param input Input value.
+   * @param shouldValidate Whether the value should be validated. Enabled
+   * by default.
    */
-  setFieldValue(name: string, input: any): void {
+  setFieldValue(name: string, input: any, shouldValidate = true): void {
     if (!name) {
       // TODO: Consider implementing as a DEV only warning.
       console.warn(
@@ -163,7 +169,9 @@ export class Model<T extends object = any> implements Model<T> {
     this._mem = {}
 
     field = this._updateField(field, {value})
-    this._performFieldValidation(field)
+    if (shouldValidate) {
+      this._performFieldValidation(field)
+    }
 
     this._notify()
     this._options.onChange(this)
@@ -363,7 +371,8 @@ export class Model<T extends object = any> implements Model<T> {
       name,
       value,
 
-      change: input => this.setFieldValue(name, input),
+      change: (input, shouldValidate) =>
+        this.setFieldValue(name, input, shouldValidate),
       dirty: false,
       validate: () => this.validateField(name),
     }

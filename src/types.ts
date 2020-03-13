@@ -46,8 +46,12 @@ export type ModelFieldsTree<T extends object = any> = Required<
 export type ModelField<T = any> = {
   /**
    * Change field value.
+   *
+   * @param input Input for the value change.
+   * @param shouldValidate Whether the value should be validated. Enabled
+   * by default.
    */
-  change: (input: any) => void
+  change(input: any, shouldValidate?: boolean): void
     /**
    * Whether the value of the field has been changed.
    */
@@ -63,7 +67,7 @@ export type ModelField<T = any> = {
   /**
    * Validate field.
    */
-  validate: () => ModelValidationError
+  validate(): ModelValidationError
   /**
    * Current field value.
    */

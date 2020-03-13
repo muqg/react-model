@@ -155,7 +155,7 @@ describe("Model instance", () => {
         expect(model.fields.foo.dirty).toBe(true)
       })
 
-      it("updates error", () => {
+      it("validates value and updates error", () => {
         validator.mockImplementation(val => {
           if (!val) {
             return "error"
@@ -166,6 +166,14 @@ describe("Model instance", () => {
         expect(model.fields.foo.error).toBe("error")
 
         model.fields.foo.change(123)
+        expect(model.fields.foo.error).toBeFalsy()
+      })
+
+      it("does not validate when shouldValidate argument is false", () => {
+        model.setFieldValue("foo", 123, false)
+        expect(model.fields.foo.error).toBeFalsy()
+
+        model.fields.foo.change(124, false)
         expect(model.fields.foo.error).toBeFalsy()
       })
     })
@@ -198,7 +206,10 @@ describe("Model instance", () => {
     let model: Model<{foo: string}>
 
     beforeEach(() => {
-      model = new Model<{foo: string}>({foo: {value: ""}}, {})
+      model = new Model<{foo: string}>(
+        {foo: {value: "", validate: () => "error"}},
+        {}
+      )
     })
 
     it("works with name", () => {
@@ -242,6 +253,20 @@ describe("Model instance", () => {
       fireEvent.blur(input.current!)
 
       expect(model.fields.foo.value).toBe("asd")
+    })
+
+    it("does not validate when shouldValidate argument is false", () => {
+      const input = React.createRef<HTMLInputElement>()
+      render(
+        <input
+          id={model.fields.foo.name}
+          onChange={e => model.handleChange(e, false)}
+          ref={input}
+        />
+      )
+      userEvent.type(input.current!, "asd")
+
+      expect(model.fields.foo.error).toBeFalsy()
     })
   })
 
