@@ -242,7 +242,7 @@ export class Model<T extends object = any> implements Model<T> {
     const {validate} = this._utils[name]
     const error = validate?.(value, this.values)
 
-    if (error && field.error !== error) {
+    if (field.error !== error) {
       this._updateField(field, {error})
       delete this._mem.errors
     }

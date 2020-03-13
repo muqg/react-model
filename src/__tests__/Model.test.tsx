@@ -154,6 +154,20 @@ describe("Model instance", () => {
         expect(model.isDirty()).toBe(true)
         expect(model.fields.foo.dirty).toBe(true)
       })
+
+      it("updates error", () => {
+        validator.mockImplementation(val => {
+          if (!val) {
+            return "error"
+          }
+        })
+
+        model.fields.foo.change(0)
+        expect(model.fields.foo.error).toBe("error")
+
+        model.fields.foo.change(123)
+        expect(model.fields.foo.error).toBeFalsy()
+      })
     })
 
     describe("when set to the same value", () => {
