@@ -326,6 +326,22 @@ export class Model<T extends object = any> implements Model<T> {
     this._notify()
   }
 
+  /**
+   * Reset a field to its initial state.
+   */
+  resetField = (name: string) => {
+    const fieldSchema = this._schema[name]
+
+    if (!fieldSchema) {
+      return
+    }
+
+    this._registerField(name, fieldSchema)
+    this._mem = {}
+
+    this._notify()
+  }
+
   private _setupInitialState() {
     this._clearState()
     this._setupInitialFieldState()
@@ -365,6 +381,7 @@ export class Model<T extends object = any> implements Model<T> {
       change: (input, shouldValidate) =>
         this.setFieldValue(name, input, shouldValidate),
       dirty: false,
+      reset: () => this.resetField(name),
       validate: () => this.validateField(name),
     }
 

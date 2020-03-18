@@ -10,6 +10,7 @@ const EmptyField: ModelField = {
   dirty: false,
   name: "",
   error: undefined,
+  reset: noop,
   validate: noop,
   value: "",
 }

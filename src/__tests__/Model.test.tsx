@@ -318,6 +318,13 @@ describe("Model instance", () => {
       expect(model.getErrors()).not.toBe(errors)
     })
 
+    it("revalidates fields after a field reset", () => {
+      const errors = model.getErrors()
+      model.fields.invalid.reset()
+
+      expect(model.getErrors()).not.toBe(errors)
+    })
+
     it("calls options.validate() callback", () => {
       const model = new Model(
         {foo: {value: 10}, bar: {value: 12, validate: () => "error"}},
@@ -535,6 +542,14 @@ describe("Model instance", () => {
 
         expect(submission).toHaveBeenCalledTimes(2)
       })
+
+      it("can be submitted again after a field reset", async () => {
+        await model.submit(submission, handleError)
+        model.fields.foo.reset()
+        await model.submit(submission, handleError)
+
+        expect(submission).toHaveBeenCalledTimes(2)
+      })
     })
 
     describe("when an exception is thrown", () => {
@@ -621,6 +636,68 @@ describe("Model instance", () => {
 
     it("calls options.onReset callback", () => {
       expect(onReset).toHaveBeenCalledWith(model)
+    })
+  })
+
+  describe("resetField() method", () => {
+    let model: Model<{foo: string}>
+    let subscriber: jest.Mock
+
+    beforeEach(() => {
+      model = new Model(
+        {foo: {value: "initial", error: "invalid", validate: () => "error"}},
+        {}
+      )
+
+      subscriber = jest.fn()
+      model._subscribe(subscriber)
+    })
+
+    it("sets initial value", () => {
+      model.fields.foo.change("changed")
+      model.resetField("foo")
+
+      expect(model.fields.foo.value).toBe("initial")
+    })
+
+    it("sets initial error", () => {
+      model.fields.foo.validate()
+      model.resetField("foo")
+
+      expect(model.fields.foo.error).toBe("invalid")
+    })
+
+    it("makes field not dirty", () => {
+      model.fields.foo.change("changed")
+      model.resetField("foo")
+
+      expect(model.fields.foo.dirty).toBeFalsy()
+    })
+
+    it("notifies subscribers", () => {
+      model.resetField("foo")
+      expect(subscriber).toHaveBeenCalled()
+    })
+
+    it("does not mutate field", () => {
+      const fieldBeforeChange = model.fields.foo
+      model.resetField("foo")
+
+      expect(model.fields.foo).not.toBe(fieldBeforeChange)
+    })
+
+    it("does not mutate model fields", () => {
+      const fieldsBeforeChange = model.fields
+      model.resetField("foo")
+
+      expect(model.fields).not.toBe(fieldsBeforeChange)
+    })
+
+    it("updates model values", () => {
+      model.fields.foo.change("changed")
+      model.resetField("foo")
+
+      expect(model.values.foo).toBe("initial")
     })
   })
 })

@@ -65,6 +65,10 @@ export type ModelField<T = any> = {
    */
   name: string
   /**
+   * Reset field to its initial state.
+   */
+  reset(): void
+  /**
    * Validate field.
    */
   validate(): ModelValidationError
