@@ -511,11 +511,6 @@ describe("Model instance", () => {
         model.submit(submission)
       })
 
-      it("resets model", async () => {
-        await model.submit(submission)
-        expect(model.fields.foo.value).toBe("initial")
-      })
-
       it("sets submitting to false", async () => {
         await model.submit(submission)
         expect(model.isSubmitting()).toBe(false)

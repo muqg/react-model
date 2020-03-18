@@ -293,13 +293,7 @@ export class Model<T extends object = any> implements Model<T> {
           await result
         }
 
-        // Submission should be called before resetting the model in order to
-        // allow it to access the model in its submission state.
         this._options.onSubmit(this)
-        this.reset()
-
-        // Has to be set to true again due to the reset call above.
-        this._mem.submitted = true
 
         return result
       }
