@@ -14,7 +14,6 @@ type ModelFieldUtils = Omit<ModelSchemaField, "error" | "value">
 type ModelSubscriber<T extends object = any> = (model: Model<T>) => void
 
 type State = {
-  dirty?: boolean
   errors?: ModelErrors
   submitted?: boolean
 }
@@ -79,10 +78,10 @@ export class Model<T extends object = any> implements Model<T> {
   }
 
   /**
-   * Whether any field's value has been changed.
+   * Whether any of the model's fields is dirty.
    */
   get isDirty() {
-    return !!this._mem.dirty
+    return Object.keys(this._schema).some(name => this.getField(name).dirty)
   }
 
   /**
@@ -125,9 +124,7 @@ export class Model<T extends object = any> implements Model<T> {
     // TODO: Warn for unsupported field values e.g. undefined. They are
     // considered code errors just as is an empty input name.
     if (changes.value !== undefined) {
-      this._mem.dirty = true
       field.dirty = true
-
       this.values = insert(this.values, field.name, changes.value)
     }
 
