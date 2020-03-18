@@ -1,3 +1,4 @@
+export {Form} from "./Form"
 export {ModelProvider} from "./ModelProvider"
 export * from "./parseEventInput"
 export * from "./types"
