@@ -79,6 +79,25 @@ export class Model<T extends object = any> implements Model<T> {
   }
 
   /**
+   * Whether any field's value has been changed.
+   */
+  get isDirty() {
+    return !!this._mem.dirty
+  }
+
+  /**
+   * Whether the model is currently being submitted.
+   */
+  get isSubmitting() {
+    return this._submitting
+  }
+
+  set isSubmitting(value: boolean) {
+    this._submitting = value
+    this._notify()
+  }
+
+  /**
    * Returns a model field using dot notation.
    *
    * @param name Target field name using dot notation.
@@ -178,13 +197,6 @@ export class Model<T extends object = any> implements Model<T> {
   }
 
   /**
-   * Whether a any field's value was changed.
-   */
-  isDirty(): boolean {
-    return !!this._mem.dirty
-  }
-
-  /**
    * Validate model.
    */
   validate = (): ModelErrors => {
@@ -278,7 +290,7 @@ export class Model<T extends object = any> implements Model<T> {
     }
 
     try {
-      this._setSubmitting(true)
+      this.isSubmitting = true
       this._mem.submitted = true
 
       const errors = this.validate()
@@ -304,20 +316,8 @@ export class Model<T extends object = any> implements Model<T> {
 
       throw err
     } finally {
-      this._setSubmitting(false)
+      this.isSubmitting = false
     }
-  }
-
-  private _setSubmitting(value: boolean) {
-    this._submitting = value
-    this._notify()
-  }
-
-  /**
-   * Whether the model is currently being submitted.
-   */
-  isSubmitting(): boolean {
-    return this._submitting
   }
 
   /**

@@ -151,7 +151,7 @@ describe("Model instance", () => {
       it("marks as dirty", () => {
         model.setFieldValue("foo", 123)
 
-        expect(model.isDirty()).toBe(true)
+        expect(model.isDirty).toBe(true)
         expect(model.fields.foo.dirty).toBe(true)
       })
 
@@ -184,7 +184,7 @@ describe("Model instance", () => {
       })
 
       it("does not mark as dirty", () => {
-        expect(model.isDirty()).toBe(false)
+        expect(model.isDirty).toBe(false)
         expect(model.fields.foo.dirty).toBe(false)
       })
 
@@ -431,7 +431,7 @@ describe("Model instance", () => {
       const model = new Model({foo: {value: 1}}, {})
       model.submit(submission, handleError)
 
-      expect(model.isSubmitting()).toBe(true)
+      expect(model.isSubmitting).toBe(true)
     })
 
     it("cannot be called again while already submitting", () => {
@@ -457,7 +457,7 @@ describe("Model instance", () => {
       })
 
       it("sets submitting to false on validation errors", () => {
-        expect(model.isSubmitting()).toBe(false)
+        expect(model.isSubmitting).toBe(false)
       })
 
       it("calls handleError callback", () => {
@@ -513,7 +513,7 @@ describe("Model instance", () => {
 
       it("sets submitting to false", async () => {
         await model.submit(submission)
-        expect(model.isSubmitting()).toBe(false)
+        expect(model.isSubmitting).toBe(false)
       })
 
       it("returns the result of the submission callback", () => {
@@ -552,7 +552,7 @@ describe("Model instance", () => {
       })
 
       it("sets submitting to false", () => {
-        expect(model.isSubmitting()).toBe(false)
+        expect(model.isSubmitting).toBe(false)
       })
 
       it("can be submitted immediately afterwards", () => {
@@ -593,7 +593,7 @@ describe("Model instance", () => {
     })
 
     it("is not marked as dirty", () => {
-      expect(model.isDirty()).toBe(false)
+      expect(model.isDirty).toBe(false)
     })
 
     it("can perform fresh validation after reset", () => {
