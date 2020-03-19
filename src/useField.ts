@@ -8,8 +8,9 @@ const noop: () => any = () => {}
 const EmptyField: ModelField = {
   change: noop,
   dirty: false,
-  name: "",
   error: undefined,
+  initialValue: "",
+  name: "",
   reset: noop,
   validate: noop,
   value: "",

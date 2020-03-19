@@ -52,7 +52,7 @@ export type ModelField<T = any> = {
    * by default.
    */
   change(input: any, shouldValidate?: boolean): void
-    /**
+  /**
    * Whether the value of the field has been changed.
    */
   dirty: boolean
@@ -60,6 +60,10 @@ export type ModelField<T = any> = {
    * Current field error message if any.
    */
   error: ModelValidationError
+  /**
+   * The value that the field was initially set to.
+   */
+  initialValue: T
   /**
    * Name of the field.
    */

@@ -381,6 +381,7 @@ export class Model<T extends object = any> implements Model<T> {
       change: (input, shouldValidate) =>
         this.setFieldValue(name, input, shouldValidate),
       dirty: false,
+      initialValue: value,
       reset: () => this.resetField(name),
       validate: () => this.validateField(name),
     }
