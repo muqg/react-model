@@ -82,7 +82,11 @@ describe("Model instance", () => {
   })
 
   describe("setFieldValue() method", () => {
-    type SetFieldValueModelObject = {foo: number; parsed: string}
+    type SetFieldValueModelObject = {
+      foo: number
+      parsed: string
+      nested: {val: string}
+    }
 
     let model: Model<SetFieldValueModelObject>
     let onChange: jest.Mock
@@ -100,6 +104,11 @@ describe("Model instance", () => {
         {
           foo: {value: 10, validate: validator},
           parsed: {value: "pp", parse: parser},
+          nested: {
+            val: {
+              value: "initial",
+            },
+          },
         },
         {onChange}
       )
@@ -158,28 +167,28 @@ describe("Model instance", () => {
       })
 
       it("marks as dirty when not the same as the initial value", () => {
-        model.setFieldValue("foo", 123)
+        model.setFieldValue("nested.val", "changed")
 
         expect(model.isDirty).toBe(true)
-        expect(model.fields.foo.dirty).toBe(true)
+        expect(model.fields.nested.val.dirty).toBe(true)
       })
 
       it("marks as not dirty when set back to its initial value", () => {
-        model.setFieldValue("foo", 123)
-        model.fields.foo.change(model.fields.foo.initialValue)
+        model.setFieldValue("nested.val", "changed")
+        model.fields.nested.val.change(model.fields.nested.val.initialValue)
 
         expect(model.isDirty).toBeFalsy()
-        expect(model.fields.foo.dirty).toBeFalsy()
+        expect(model.fields.nested.val.dirty).toBeFalsy()
       })
 
       it("marks as touched", () => {
-        model.setFieldValue("foo", 42)
+        model.setFieldValue("nested.val", "changed")
         expect(model.isTouched).toBeTruthy()
-        expect(model.fields.foo.touched).toBeTruthy()
+        expect(model.fields.nested.val.touched).toBeTruthy()
 
-        model.setFieldValue("foo", model.fields.foo.initialValue)
+        model.setFieldValue("nested.val", model.fields.nested.val.initialValue)
         expect(model.isTouched).toBeTruthy()
-        expect(model.fields.foo.touched).toBeTruthy()
+        expect(model.fields.nested.val.touched).toBeTruthy()
       })
 
       it("validates value and updates error", () => {
@@ -212,7 +221,7 @@ describe("Model instance", () => {
 
       it("does not mark as dirty when value is the same as the initial one", () => {
         expect(model.isDirty).toBe(false)
-        expect(model.fields.foo.dirty).toBe(false)
+        expect(model.fields.nested.val.dirty).toBe(false)
       })
 
       it("does not validate", () => {

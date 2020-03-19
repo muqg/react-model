@@ -81,14 +81,14 @@ export class Model<T extends object = any> implements Model<T> {
    * Whether any of the model's fields is dirty.
    */
   get isDirty() {
-    return Object.keys(this._schema).some(name => this.getField(name).dirty)
+    return this._names.some(name => this.getField(name).dirty)
   }
 
   /**
    * Whether any of the model's fields is touched.
    */
   get isTouched() {
-    return Object.keys(this._schema).some(name => this.getField(name).touched)
+    return this._names.some(name => this.getField(name).touched)
   }
 
   /**
