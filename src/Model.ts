@@ -104,6 +104,13 @@ export class Model<T extends object = any> implements Model<T> {
   }
 
   /**
+   * A list of all valid field names.
+   */
+  private get _names() {
+    return Object.keys(this._utils)
+  }
+
+  /**
    * Returns a model field using dot notation.
    *
    * @param name Target field name using dot notation.
@@ -111,7 +118,7 @@ export class Model<T extends object = any> implements Model<T> {
   getField<T = any>(name: string): ModelField<T> {
     const field = retrieve(this.fields, name)
 
-    if (field === this.fields || field === undefined) {
+    if (field === undefined || this._names.indexOf(name) === -1) {
       throw new Error(
         `Missing model field: ${name}\n` +
           "This field was not part of the initial schema and is possibly an error in your code."

@@ -53,10 +53,15 @@ describe("Model instance", () => {
   })
 
   describe("getField() method", () => {
-    let model: Model<{foo: string}>
+    type GetFieldModelObject = {foo: string; nested: {bar: string}}
+
+    let model: Model<GetFieldModelObject>
 
     beforeEach(() => {
-      model = new Model({foo: {value: "test"}}, {})
+      model = new Model<GetFieldModelObject>(
+        {foo: {value: "test"}, nested: {bar: {value: ""}}},
+        {}
+      )
     })
 
     it("returns model field for given key", () => {
@@ -69,6 +74,10 @@ describe("Model instance", () => {
 
     it("throws on missing field at key", () => {
       expect(() => model.getField("invalid.key")).toThrow()
+    })
+
+    it("throws when key does not point to a model field", () => {
+      expect(() => model.getField("nested")).toThrow()
     })
   })
 
