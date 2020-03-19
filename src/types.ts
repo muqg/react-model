@@ -4,6 +4,8 @@ export type Model<T extends object = any> = Readonly<ModelObject<T>>
 
 type JsonPrimitive = string | number | boolean | null
 
+type Serializable = JsonPrimitive | Array<any> | object
+
 export type ModelValidationError = string | undefined
 
 export type ModelErrors = Record<string, ModelValidationError>
@@ -87,6 +89,12 @@ export type ModelField<T = any> = {
   value: T
 }
 
+export type ModelFieldLinkOptions<T extends Serializable = any> = {
+  defaultValue?: T
+  name: string
+  validate?: ModelSchemaFieldValidator
+}
+
 export type ModelSchema<
   T extends object = any,
   O extends Required<T> = Required<T>
@@ -98,7 +106,7 @@ export type ModelSchema<
 
 export type ModelSchemaField<
   O extends object = any,
-  T extends JsonPrimitive | any[] = any
+  T extends Serializable = any
 > = {
   /**
    * Initial field error.

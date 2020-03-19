@@ -735,4 +735,87 @@ describe("Model instance", () => {
       expect(model.values.foo).toBe("initial")
     })
   })
+
+  describe("Field linking", () => {
+    type FieldLinkTestObject = {foo: string; empty: string}
+
+    let model: Model<FieldLinkTestObject>
+
+    beforeEach(() => {
+      model = new Model<FieldLinkTestObject>(
+        {
+          foo: {value: "initial", validate: () => "initial error"},
+          empty: {value: "", validate: () => "initial error"},
+        },
+        {}
+      )
+    })
+
+    it("sets default value only once", () => {
+      model._linkField("empty", {defaultValue: "linked"})
+      model._linkField("empty", {defaultValue: "twice"})
+
+      expect(model.fields.empty.value).toBe("linked")
+    })
+
+    it("does not set default value when initial one is not falsey", () => {
+      model._linkField("foo", {defaultValue: "linked"})
+      expect(model.fields.foo.value).toBe("initial")
+    })
+
+    it("updates model values after mutating field value", () => {
+      model._linkField("empty", {defaultValue: "linked"})
+      model._linkField("empty", {defaultValue: "twice"})
+
+      expect(model.values.empty).toBe("linked")
+    })
+
+    it("updates field's initialValue to match the default one", () => {
+      model._linkField("empty", {defaultValue: "linked"})
+      expect(model.fields.empty.initialValue).toBe("linked")
+    })
+
+    it("falls back to schema value when value option is undefined", () => {
+      model._linkField("empty", {defaultValue: undefined})
+      expect(model.fields.empty.value).toBe("")
+    })
+
+    it("does not set default value when linked field is already touched", () => {
+      model.fields.empty.change("changed")
+      model._linkField("empty", {defaultValue: "linked"})
+
+      expect(model.fields.empty.value).toBe("changed")
+
+      model.reset()
+
+      model.fields.empty.validate()
+      model._linkField("empty", {defaultValue: "linked"})
+
+      expect(model.fields.empty.value).toBe("")
+    })
+
+    it("sets validation on each call", () => {
+      model._linkField("foo", {validate: () => "error"})
+      model.fields.foo.validate()
+
+      expect(model.fields.foo.error).toBe("error")
+
+      model._linkField("foo", {validate: () => "invalid"})
+      model.fields.foo.validate()
+
+      expect(model.fields.foo.error).toBe("invalid")
+    })
+
+    it("falls back to schema validation when validate option is undefined", () => {
+      model._linkField("foo", {validate: () => "linked error"})
+      model.fields.foo.validate()
+
+      expect(model.fields.foo.error).toBe("linked error")
+
+      model._linkField("foo", {validate: undefined})
+      model.fields.foo.validate()
+
+      expect(model.fields.foo.error).toBe("initial error")
+    })
+  })
 })

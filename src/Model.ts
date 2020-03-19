@@ -2,6 +2,7 @@ import {ParseableEvent, parseEventInput} from "./parseEventInput"
 import {
   ModelErrors,
   ModelField,
+  ModelFieldLinkOptions,
   ModelFieldsTree,
   ModelOptions,
   ModelSchema,
@@ -141,6 +142,24 @@ export class Model<T extends object = any> implements Model<T> {
     this.fields = insert(this.fields, name, updatedField)
 
     return updatedField
+  }
+
+  _linkField(name: string, options: Partial<ModelFieldLinkOptions>): void {
+    const {defaultValue: linkValue, validate} = options
+    const field = this.getField(name)
+    const schema: ModelField = this._schema[name]
+
+    // If the field's value is different from the one defined in the schema, it
+    // means that it must have been linked already, and should thus not allow
+    // its value to be changed by a link call again.
+    if (!field.touched && !field.value && field.value === schema.value) {
+      const value = linkValue === undefined ? schema.value : linkValue
+      field.value = value
+      field.initialValue = value
+    }
+
+    const utils = this._utils[name]
+    utils.validate = validate || schema.validate
   }
 
   /**
