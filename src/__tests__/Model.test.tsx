@@ -148,11 +148,19 @@ describe("Model instance", () => {
         expect(onChange).toHaveBeenCalledWith(model)
       })
 
-      it("marks as dirty", () => {
+      it("marks as dirty when not the same as the initial value", () => {
         model.setFieldValue("foo", 123)
 
         expect(model.isDirty).toBe(true)
         expect(model.fields.foo.dirty).toBe(true)
+      })
+
+      it("marks as not dirty when set back to its initial value", () => {
+        model.setFieldValue("foo", 123)
+        model.fields.foo.change(model.fields.foo.initialValue)
+
+        expect(model.isDirty).toBeFalsy()
+        expect(model.fields.foo.dirty).toBeFalsy()
       })
 
       it("validates value and updates error", () => {
@@ -183,7 +191,7 @@ describe("Model instance", () => {
         model.setFieldValue("foo", model.values.foo)
       })
 
-      it("does not mark as dirty", () => {
+      it("does not mark as dirty when value is the same as the initial one", () => {
         expect(model.isDirty).toBe(false)
         expect(model.fields.foo.dirty).toBe(false)
       })

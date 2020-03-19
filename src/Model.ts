@@ -115,23 +115,23 @@ export class Model<T extends object = any> implements Model<T> {
   }
 
   private _updateField(
-    fieldOrName: ModelField | string,
+    field: ModelField,
     changes: Partial<ModelField>
   ): ModelField {
-    const field: ModelField | undefined =
-      typeof fieldOrName === "string" ? this.getField(fieldOrName) : fieldOrName
+    const updatedField = {...field, ...changes}
+    const name = field.name
 
     // TODO: Warn for unsupported field values e.g. undefined. They are
     // considered code errors just as is an empty input name.
-    if (changes.value !== undefined) {
-      field.dirty = true
-      this.values = insert(this.values, field.name, changes.value)
+    const newValue = changes.value
+    if (newValue !== undefined) {
+      updatedField.dirty = updatedField.initialValue !== newValue
+      this.values = insert(this.values, name, newValue)
     }
 
-    const updated = {...field, ...changes}
-    this.fields = insert(this.fields, field.name, updated)
+    this.fields = insert(this.fields, name, updatedField)
 
-    return updated
+    return updatedField
   }
 
   /**
