@@ -231,7 +231,7 @@ export class Model<T extends object = any> implements Model<T> {
     if (!this._mem.errors) {
       const errors: ModelErrors = {}
 
-      Object.keys(this._utils).forEach(name => {
+      this._names.forEach(name => {
         const error = this._performFieldValidation(this.getField(name))
         if (error) {
           errors[name] = error
