@@ -346,8 +346,7 @@ export class Model<T extends object = any> implements Model<T> {
    * Reset a field to its initial state.
    */
   resetField = (name: string) => {
-    const fieldSchema = this._schema[name]
-
+    const fieldSchema = retrieve(this._schema, name)
     if (!fieldSchema) {
       return
     }

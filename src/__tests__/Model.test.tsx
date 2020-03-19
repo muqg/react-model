@@ -686,12 +686,17 @@ describe("Model instance", () => {
   })
 
   describe("resetField() method", () => {
-    let model: Model<{foo: string}>
+    type ResetFieldModelObject = {foo: string; nested: {bar: string}}
+
+    let model: Model<ResetFieldModelObject>
     let subscriber: jest.Mock
 
     beforeEach(() => {
-      model = new Model(
-        {foo: {value: "initial", error: "invalid", validate: () => "error"}},
+      model = new Model<ResetFieldModelObject>(
+        {
+          foo: {value: "initial", error: "invalid", validate: () => "error"},
+          nested: {bar: {value: "initial"}},
+        },
         {}
       )
 
@@ -751,6 +756,13 @@ describe("Model instance", () => {
       model.resetField("foo")
 
       expect(model.values.foo).toBe("initial")
+    })
+
+    it("works with nested fields", () => {
+      model.fields.nested.bar.change("changed")
+      model.resetField("nested.bar")
+
+      expect(model.fields.nested.bar.value).toBe("initial")
     })
   })
 })
