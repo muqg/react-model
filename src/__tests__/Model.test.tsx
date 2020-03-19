@@ -163,6 +163,16 @@ describe("Model instance", () => {
         expect(model.fields.foo.dirty).toBeFalsy()
       })
 
+      it("marks as touched", () => {
+        model.setFieldValue("foo", 42)
+        expect(model.isTouched).toBeTruthy()
+        expect(model.fields.foo.touched).toBeTruthy()
+
+        model.setFieldValue("foo", model.fields.foo.initialValue)
+        expect(model.isTouched).toBeTruthy()
+        expect(model.fields.foo.touched).toBeTruthy()
+      })
+
       it("validates value and updates error", () => {
         validator.mockImplementation(val => {
           if (!val) {
@@ -404,6 +414,12 @@ describe("Model instance", () => {
       expect(model.fields).not.toBe(fieldsBeforeValidation)
     })
 
+    it("marks as touched", () => {
+      model.validateField("foo")
+      expect(model.isTouched).toBeTruthy()
+      expect(model.fields.foo.touched).toBeTruthy()
+    })
+
     it("notifies subscribers", () => {
       model.validateField("foo")
       expect(subscriber).toHaveBeenCalled()
@@ -619,6 +635,10 @@ describe("Model instance", () => {
       expect(model.isDirty).toBe(false)
     })
 
+    it("is not marked as touched", () => {
+      expect(model.isTouched).toBeFalsy()
+    })
+
     it("can perform fresh validation after reset", () => {
       const errorsBeforeReset = model.getErrors()
       model.reset()
@@ -680,6 +700,13 @@ describe("Model instance", () => {
       model.resetField("foo")
 
       expect(model.fields.foo.dirty).toBeFalsy()
+    })
+
+    it("field is not touched", () => {
+      model.fields.foo.change("changed")
+      model.resetField("foo")
+
+      expect(model.fields.foo.touched).toBeFalsy()
     })
 
     it("notifies subscribers", () => {

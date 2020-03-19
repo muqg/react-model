@@ -12,6 +12,7 @@ const EmptyField: ModelField = {
   initialValue: "",
   name: "",
   reset: noop,
+  touched: false,
   validate: noop,
   value: "",
 }

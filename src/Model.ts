@@ -85,6 +85,13 @@ export class Model<T extends object = any> implements Model<T> {
   }
 
   /**
+   * Whether any of the model's fields is touched.
+   */
+  get isTouched() {
+    return Object.keys(this._schema).some(name => this.getField(name).touched)
+  }
+
+  /**
    * Whether the model is currently being submitted.
    */
   get isSubmitting() {
@@ -120,6 +127,8 @@ export class Model<T extends object = any> implements Model<T> {
   ): ModelField {
     const updatedField = {...field, ...changes}
     const name = field.name
+
+    updatedField.touched = true
 
     // TODO: Warn for unsupported field values e.g. undefined. They are
     // considered code errors just as is an empty input name.
@@ -383,6 +392,7 @@ export class Model<T extends object = any> implements Model<T> {
       dirty: false,
       initialValue: value,
       reset: () => this.resetField(name),
+      touched: false,
       validate: () => this.validateField(name),
     }
 

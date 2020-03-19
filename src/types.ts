@@ -73,6 +73,11 @@ export type ModelField<T = any> = {
    */
   reset(): void
   /**
+   * Whether the field was changed, validated or otherwise modified
+   * since its initialization or the last time it was reset.
+   */
+  touched: boolean
+  /**
    * Validate field.
    */
   validate(): ModelValidationError
