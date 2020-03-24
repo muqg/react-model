@@ -50,6 +50,20 @@ describe("Model instance", () => {
       expect(error).toBe("err")
       expect(name).toBe("nested.foo")
     })
+
+    it("works with array values", () => {
+      const data = [1, 2]
+      const model = new Model<{nested: {arr: number[]}}>(
+        {nested: {arr: {value: data}}},
+        {}
+      )
+
+      const {initialValue, value} = model.fields.nested.arr
+
+      expect(value).toEqual(data)
+      expect(initialValue).toEqual(data)
+      expect(model.values.nested.arr).toEqual(data)
+    })
   })
 
   describe("getField() method", () => {

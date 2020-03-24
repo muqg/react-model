@@ -29,16 +29,16 @@ const DefaultOptions: ModelOptions = {
 
 // By using the keys of a fake SchemaField object we can make use of
 // Typescript's assitance to never miss a valid key.
-const ValidSchemaFieldKeys: Required<ModelSchemaField> = {
-  error: true as any,
-  parse: true as any,
-  value: true as any,
-  validate: true as any,
+const ValidSchemaFieldKeys: Record<keyof ModelSchemaField, boolean> = {
+  error: true,
+  parse: true,
+  value: true,
+  validate: true,
 }
 
 function isSchemaFieldObject(input: any): input is ModelSchemaField {
   return (
-    isObject(input) && Object.keys(input).some(k => !ValidSchemaFieldKeys[k])
+    isObject(input) && Object.keys(input).every(k => ValidSchemaFieldKeys[k])
   )
 }
 
@@ -375,7 +375,7 @@ export class Model<T extends object = any> implements Model<T> {
       return
     }
 
-    if (!Array.isArray(fieldSchema) && isSchemaFieldObject(fieldSchema)) {
+    if (!isSchemaFieldObject(fieldSchema)) {
       Object.keys(fieldSchema).forEach(k =>
         this._setupInitialFieldState(name ? `${name}.${k}` : k)
       )
