@@ -18,9 +18,10 @@
     "lib/**/*"
   ],
   "scripts": {
-    "build": "npm run build:cjs && npm run build:esm",
+    "build": "npm run clean && npm run build:cjs && npm run build:esm",
     "build:cjs": "ncc build src/index.ts -o lib/cjs -m -e react",
     "build:esm": "tsc -p tsconfig.build.json",
+    "clean": "rimraf lib",
     "prettier": "prettier --write ./src",
     "test": "jest",
     "typecheck": "tsc --noEmit"
@@ -37,6 +38,7 @@
     "react": "^16.13.0",
     "react-dom": "^16.13.0",
     "react-test-renderer": "^16.13.0",
+    "rimraf": "^3.0.2",
     "ts-jest": "^25.2.1",
     "typescript": "^3.8.3"
   },
