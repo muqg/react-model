@@ -56,7 +56,7 @@ export function useField<T = any>(name: string = ""): ModelField<T> {
   const forceUpdate = useForceUpdate()
   useEffect(
     () =>
-      model._subscribe(currentModel => {
+      model._subscribe((currentModel) => {
         // Component should be subscribed to changes only to
         // the field identified by the name argument.
         if (field !== currentModel.getField(name)) {

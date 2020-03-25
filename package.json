@@ -21,6 +21,7 @@
     "build": "npm run build:cjs && npm run build:esm",
     "build:cjs": "ncc build src/index.ts -o lib/cjs -m -e react",
     "build:esm": "tsc -p tsconfig.build.json",
+    "prettier": "prettier --write ./src",
     "test": "jest",
     "typecheck": "tsc --noEmit"
   },
@@ -32,6 +33,7 @@
     "@types/react": "^16.9.23",
     "@zeit/ncc": "^0.21.1",
     "jest": "^25.1.0",
+    "prettier": "2.0.2",
     "react": "^16.13.0",
     "react-dom": "^16.13.0",
     "react-test-renderer": "^16.13.0",

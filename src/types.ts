@@ -93,7 +93,9 @@ export type ModelSchema<
 > = {
   [K in keyof O]: O[K] extends JsonPrimitive | Array<any>
     ? ModelSchemaField<O, O[K]>
-    : O[K] extends object ? ModelSchema<O[K]> : never
+    : O[K] extends object
+    ? ModelSchema<O[K]>
+    : never
 }
 
 export type ModelSchemaField<

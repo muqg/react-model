@@ -37,8 +37,8 @@ export function parseEventInput(event: ParseableEvent) {
   }
   if ("options" in target && target.multiple) {
     return Array.from(target.options)
-      .filter(o => o.selected)
-      .map(o => o.value)
+      .filter((o) => o.selected)
+      .map((o) => o.value)
   }
 
   return value

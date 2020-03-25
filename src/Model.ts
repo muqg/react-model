@@ -38,7 +38,7 @@ const ValidSchemaFieldKeys: Record<keyof ModelSchemaField, boolean> = {
 
 function isSchemaFieldObject(input: any): input is ModelSchemaField {
   return (
-    isObject(input) && Object.keys(input).every(k => ValidSchemaFieldKeys[k])
+    isObject(input) && Object.keys(input).every((k) => ValidSchemaFieldKeys[k])
   )
 }
 
@@ -81,14 +81,14 @@ export class Model<T extends object = any> implements Model<T> {
    * Whether any of the model's fields is dirty.
    */
   get isDirty() {
-    return this._names.some(name => this.getField(name).dirty)
+    return this._names.some((name) => this.getField(name).dirty)
   }
 
   /**
    * Whether any of the model's fields is touched.
    */
   get isTouched() {
-    return this._names.some(name => this.getField(name).touched)
+    return this._names.some((name) => this.getField(name).touched)
   }
 
   /**
@@ -231,7 +231,7 @@ export class Model<T extends object = any> implements Model<T> {
     if (!this._mem.errors) {
       const errors: ModelErrors = {}
 
-      this._names.forEach(name => {
+      this._names.forEach((name) => {
         const error = this._performFieldValidation(this.getField(name))
         if (error) {
           errors[name] = error
@@ -376,7 +376,7 @@ export class Model<T extends object = any> implements Model<T> {
     }
 
     if (!isSchemaFieldObject(fieldSchema)) {
-      Object.keys(fieldSchema).forEach(k =>
+      Object.keys(fieldSchema).forEach((k) =>
         this._setupInitialFieldState(name ? `${name}.${k}` : k)
       )
     } else {
@@ -424,6 +424,6 @@ export class Model<T extends object = any> implements Model<T> {
   }
 
   private _notify() {
-    this._subs.forEach(s => s(this))
+    this._subs.forEach((s) => s(this))
   }
 }

@@ -206,7 +206,7 @@ describe("Model instance", () => {
       })
 
       it("validates value and updates error", () => {
-        validator.mockImplementation(val => {
+        validator.mockImplementation((val) => {
           if (!val) {
             return "error"
           }
@@ -310,7 +310,7 @@ describe("Model instance", () => {
       render(
         <input
           id={model.fields.foo.name}
-          onChange={e => model.handleChange(e, false)}
+          onChange={(e) => model.handleChange(e, false)}
           ref={input}
         />
       )
