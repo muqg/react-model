@@ -3,9 +3,9 @@
   "compilerOptions": {
     "declaration": true,
     "declarationDir": "./lib/types",
-    "module": "es6",
+    "module": "ES2015",
     "outDir": "./lib/esm",
-    "target": "ESNext"
+    "target": "ES2015"
   },
   "exclude": ["**/__tests__/**"]
 }
