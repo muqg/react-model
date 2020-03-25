@@ -33,6 +33,7 @@
     "@types/jest": "^25.1.4",
     "@types/react": "^16.9.23",
     "@zeit/ncc": "^0.21.1",
+    "husky": "^4.2.3",
     "jest": "^25.1.0",
     "prettier": "2.0.2",
     "react": "^16.13.0",
@@ -45,5 +46,10 @@
   "peerDependencies": {
     "react": "^16.8",
     "react-dom": "^16.8"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "npm run prettier && npm run typecheck && npm test"
+    }
   }
 }
