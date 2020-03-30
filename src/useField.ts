@@ -56,17 +56,15 @@ export function useField<T = any>(name: string = ""): ModelField<T> {
   // available in place of the subscription based implementation.
   // @see https://github.com/facebook/react/pull/18000
   const forceUpdate = useForceUpdate()
-  useEffect(
-    () =>
-      model._subscribe((currentModel) => {
-        // Component should be subscribed to changes only to
-        // the field identified by the name argument.
-        if (field !== currentModel.getField(name)) {
-          forceUpdate()
-        }
-      }),
-    [forceUpdate, model, field]
-  )
+  useEffect(() => {
+    return model._subscribe((currentModel) => {
+      // Component should be subscribed to changes only to
+      // the field identified by the name argument.
+      if (field !== currentModel.getField(name)) {
+        forceUpdate()
+      }
+    })
+  }, [model, field, name, forceUpdate])
 
   return field
 }
