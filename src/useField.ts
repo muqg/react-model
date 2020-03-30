@@ -1,4 +1,4 @@
-import {useContext, useEffect} from "react"
+import {useContext, useDebugValue, useEffect} from "react"
 import {ModelContext} from "./ModelProvider"
 import {ModelField} from "./types"
 import {useForceUpdate} from "./util/useForceUpdate"
@@ -34,6 +34,8 @@ export function useField<T = any>(name: string = ""): ModelField<T> {
       "useModel hook can only be used in children of <ModelProvider />"
     )
   }
+
+  useDebugValue(name)
 
   // An empty field should be returned in cases where the name is an empty
   // string. This allows inputs to work in an uncontrolled, headless manner
