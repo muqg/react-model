@@ -334,12 +334,52 @@ export class Model<T extends object = any> implements Model<T> {
   }
 
   /**
-   * Reset model instance to its initial state.
+   * Reset the model instance or one or more of its fields to their initial state.
+   *
+   * It will reset the model instance to its initial state when called with no
+   * argument or with an empty string.
+   *
+   * ```ts
+   * // Reset model to its initial state.
+   * model.reset()
+   * ```
+   *
+   * It will reset a single field when called with a valid field name as an
+   * argument. It can also be called with a partial field name in order to reset
+   * all fields which start with the same part. Example:
+   *
+   * ```ts
+   * // Reset a single field.
+   * model.reset("foo")
+   *
+   * // Reset all nested fields for a partial key. This call here will reset
+   * // all fields such as nested.foo, nested.foo2, nested.deeper.foo and so on.
+   * model.reset("nested")
+   * ```
+   *
+   * @param name A fully qualified field name or a partial one using dot notation.
    */
-  reset = () => {
-    this._setupInitialState()
-    this._options.onReset(this)
-    this._notify()
+  reset = (name?: string): void => {
+    let shouldNotify = true
+
+    if (name) {
+      shouldNotify = this._for(name, (name) => {
+        const fieldSchema = retrieve(this._schema, name)
+        if (!fieldSchema) {
+          return
+        }
+
+        this._registerField(name, fieldSchema)
+      })
+      this._mem = {}
+    } else {
+      this._setupInitialState()
+      this._options.onReset(this)
+    }
+
+    if (shouldNotify) {
+      this._notify()
+    }
   }
 
   /**
@@ -411,6 +451,32 @@ export class Model<T extends object = any> implements Model<T> {
       }
       this._mem.errors[name] = error
     }
+  }
+
+  /**
+   * Finds a single field or all fields with names starting with a given part
+   * and calls a given callback with each of the matched names.
+   *
+   * @param search A fully qualified field name or partial field name using dot
+   * notation.
+   * @param cb An action to perform for each field name
+   */
+  private _for(search: string, cb: (name: string) => void): boolean {
+    let names = this._names
+
+    if (names.indexOf(search) >= 0) {
+      names = [search]
+    } else {
+      const dotSearch = search + "."
+      names = names.filter((name) => name.indexOf(dotSearch) === 0)
+    }
+
+    if (names.length === 0) {
+      return false
+    }
+
+    names.forEach(cb)
+    return true
   }
 
   // TODO: Consider using React's useMutableSource hook once it becomes

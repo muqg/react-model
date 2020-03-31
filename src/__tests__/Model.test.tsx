@@ -634,149 +634,165 @@ describe("Model instance", () => {
   })
 
   describe("reset() method", () => {
-    type ResetMethodModelObject = {foo: string}
+    describe("when called with no argument", () => {
+      type ResetMethodModelObject = {foo: string}
 
-    let model: Model<ResetMethodModelObject>
-    let onReset: jest.Mock
-    let subscriber: jest.Mock
+      let model: Model<ResetMethodModelObject>
+      let onReset: jest.Mock
+      let subscriber: jest.Mock
 
-    beforeEach(() => {
-      onReset = jest.fn()
-      model = new Model<ResetMethodModelObject>(
-        {foo: {value: "initial"}},
-        {onReset}
-      )
-      model.setFieldValue("foo", "changed")
+      beforeEach(() => {
+        onReset = jest.fn()
+        model = new Model<ResetMethodModelObject>(
+          {foo: {value: "initial"}},
+          {onReset}
+        )
+        model.setFieldValue("foo", "changed")
 
-      subscriber = jest.fn()
-      model._subscribe(subscriber)
+        subscriber = jest.fn()
+        model._subscribe(subscriber)
 
-      expect(model.values.foo).toBe("changed")
-      model.reset()
+        expect(model.values.foo).toBe("changed")
+        model.reset()
+      })
+
+      it("sets values to their initial state", () => {
+        expect(model.values.foo).toBe("initial")
+      })
+
+      it("sets fields to their initial state", () => {
+        expect(model.fields.foo.value).toBe("initial")
+      })
+
+      it("is not marked as dirty", () => {
+        expect(model.isDirty).toBe(false)
+      })
+
+      it("is not marked as touched", () => {
+        expect(model.isTouched).toBeFalsy()
+      })
+
+      it("can perform fresh validation after reset", () => {
+        const errorsBeforeReset = model.getErrors()
+        model.reset()
+
+        expect(model.getErrors()).not.toBe(errorsBeforeReset)
+      })
+
+      it("can be submitted again after reset", () => {
+        const submission = jest.fn()
+        model.submit(submission)
+
+        model.reset()
+
+        model.submit(submission)
+        model.submit(submission)
+
+        expect(submission).toHaveBeenCalledTimes(2)
+      })
+
+      it("notifies subscribers", () => {
+        expect(subscriber).toHaveBeenCalledTimes(1)
+      })
+
+      it("calls options.onReset callback", () => {
+        expect(onReset).toHaveBeenCalledWith(model)
+      })
     })
 
-    it("sets values to their initial state", () => {
-      expect(model.values.foo).toBe("initial")
-    })
+    describe("when called with a field name", () => {
+      type ResetFieldModelObject = {
+        foo: string
+        nested: {bar: string; bar2: number}
+      }
 
-    it("sets fields to their initial state", () => {
-      expect(model.fields.foo.value).toBe("initial")
-    })
+      let model: Model<ResetFieldModelObject>
+      let subscriber: jest.Mock
 
-    it("is not marked as dirty", () => {
-      expect(model.isDirty).toBe(false)
-    })
+      beforeEach(() => {
+        model = new Model<ResetFieldModelObject>(
+          {
+            foo: {value: "initial", error: "invalid", validate: () => "error"},
+            nested: {bar: {value: "initial"}, bar2: {value: 0}},
+          },
+          {}
+        )
 
-    it("is not marked as touched", () => {
-      expect(model.isTouched).toBeFalsy()
-    })
+        subscriber = jest.fn()
+        model._subscribe(subscriber)
+      })
 
-    it("can perform fresh validation after reset", () => {
-      const errorsBeforeReset = model.getErrors()
-      model.reset()
+      it("sets initial value", () => {
+        model.fields.foo.change("changed")
+        model.reset("foo")
 
-      expect(model.getErrors()).not.toBe(errorsBeforeReset)
-    })
+        expect(model.fields.foo.value).toBe("initial")
+      })
 
-    it("can be submitted again after reset", () => {
-      const submission = jest.fn()
-      model.submit(submission)
+      it("sets initial error", () => {
+        model.fields.foo.validate()
+        model.reset("foo")
 
-      model.reset()
+        expect(model.fields.foo.error).toBe("invalid")
+      })
 
-      model.submit(submission)
-      model.submit(submission)
+      it("makes field not dirty", () => {
+        model.fields.foo.change("changed")
+        model.reset("foo")
 
-      expect(submission).toHaveBeenCalledTimes(2)
-    })
+        expect(model.fields.foo.dirty).toBeFalsy()
+      })
 
-    it("notifies subscribers", () => {
-      expect(subscriber).toHaveBeenCalledTimes(1)
-    })
+      it("field is not touched", () => {
+        model.fields.foo.change("changed")
+        model.reset("foo")
 
-    it("calls options.onReset callback", () => {
-      expect(onReset).toHaveBeenCalledWith(model)
-    })
-  })
+        expect(model.fields.foo.touched).toBeFalsy()
+      })
 
-  describe("resetField() method", () => {
-    type ResetFieldModelObject = {foo: string; nested: {bar: string}}
+      it("notifies subscribers", () => {
+        model.reset("foo")
+        expect(subscriber).toHaveBeenCalled()
+      })
 
-    let model: Model<ResetFieldModelObject>
-    let subscriber: jest.Mock
+      it("does not mutate field", () => {
+        const fieldBeforeChange = model.fields.foo
+        model.reset("foo")
 
-    beforeEach(() => {
-      model = new Model<ResetFieldModelObject>(
-        {
-          foo: {value: "initial", error: "invalid", validate: () => "error"},
-          nested: {bar: {value: "initial"}},
-        },
-        {}
-      )
+        expect(model.fields.foo).not.toBe(fieldBeforeChange)
+      })
 
-      subscriber = jest.fn()
-      model._subscribe(subscriber)
-    })
+      it("does not mutate model fields", () => {
+        const fieldsBeforeChange = model.fields
+        model.reset("foo")
 
-    it("sets initial value", () => {
-      model.fields.foo.change("changed")
-      model.resetField("foo")
+        expect(model.fields).not.toBe(fieldsBeforeChange)
+      })
 
-      expect(model.fields.foo.value).toBe("initial")
-    })
+      it("updates model values", () => {
+        model.fields.foo.change("changed")
+        model.reset("foo")
 
-    it("sets initial error", () => {
-      model.fields.foo.validate()
-      model.resetField("foo")
+        expect(model.values.foo).toBe("initial")
+      })
 
-      expect(model.fields.foo.error).toBe("invalid")
-    })
+      it("works with nested fields", () => {
+        model.fields.nested.bar.change("changed")
+        model.reset("nested.bar")
 
-    it("makes field not dirty", () => {
-      model.fields.foo.change("changed")
-      model.resetField("foo")
+        expect(model.fields.nested.bar.value).toBe("initial")
+      })
 
-      expect(model.fields.foo.dirty).toBeFalsy()
-    })
+      it("resets all nested fields for a given partial field name", () => {
+        model.fields.foo.change("changed")
+        model.fields.nested.bar.change("changed")
+        model.fields.nested.bar2.change(1)
+        model.reset("nested")
 
-    it("field is not touched", () => {
-      model.fields.foo.change("changed")
-      model.resetField("foo")
-
-      expect(model.fields.foo.touched).toBeFalsy()
-    })
-
-    it("notifies subscribers", () => {
-      model.resetField("foo")
-      expect(subscriber).toHaveBeenCalled()
-    })
-
-    it("does not mutate field", () => {
-      const fieldBeforeChange = model.fields.foo
-      model.resetField("foo")
-
-      expect(model.fields.foo).not.toBe(fieldBeforeChange)
-    })
-
-    it("does not mutate model fields", () => {
-      const fieldsBeforeChange = model.fields
-      model.resetField("foo")
-
-      expect(model.fields).not.toBe(fieldsBeforeChange)
-    })
-
-    it("updates model values", () => {
-      model.fields.foo.change("changed")
-      model.resetField("foo")
-
-      expect(model.values.foo).toBe("initial")
-    })
-
-    it("works with nested fields", () => {
-      model.fields.nested.bar.change("changed")
-      model.resetField("nested.bar")
-
-      expect(model.fields.nested.bar.value).toBe("initial")
+        expect(model.fields.foo.value).toBe("changed")
+        expect(model.fields.nested.bar.value).toBe("initial")
+        expect(model.fields.nested.bar2.value).toBe(0)
+      })
     })
   })
 })
