@@ -2,7 +2,7 @@ import type {Model as ModelObject} from "./Model"
 
 export type Model<T extends object = any> = Readonly<ModelObject<T>>
 
-type JsonPrimitive = string | number | boolean | null
+type JsonPrimitive = string | number | boolean | null | undefined
 
 export type ModelValidationError = string | undefined
 

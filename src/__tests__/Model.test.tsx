@@ -64,6 +64,19 @@ describe("Model instance", () => {
       expect(initialValue).toEqual(data)
       expect(model.values.nested.arr).toEqual(data)
     })
+
+    it("does not include undefined (optional) fields in model values initially", () => {
+      type TargetObject = {
+        nested: {empty: string | undefined; foo: number}
+      }
+
+      const model = new Model<TargetObject>(
+        {nested: {empty: {value: undefined}, foo: {value: 1}}},
+        {}
+      )
+
+      expect("empty" in model.values.nested).toBeFalsy()
+    })
   })
 
   describe("getField() method", () => {
@@ -99,7 +112,7 @@ describe("Model instance", () => {
     type SetFieldValueModelObject = {
       foo: number
       parsed: string
-      nested: {val: string}
+      nested: {val: string; optional: string | undefined}
     }
 
     let model: Model<SetFieldValueModelObject>
@@ -120,6 +133,9 @@ describe("Model instance", () => {
           parsed: {value: "pp", parse: parser},
           nested: {
             val: {
+              value: "initial",
+            },
+            optional: {
               value: "initial",
             },
           },
@@ -225,6 +241,14 @@ describe("Model instance", () => {
 
         model.fields.foo.change(124, false)
         expect(model.fields.foo.error).toBeFalsy()
+      })
+
+      it("is not included in model values when set to undefined", () => {
+        model.setFieldValue("nested.optional", undefined)
+        expect("optional" in model.values.nested).toBeFalsy()
+
+        model.setFieldValue("nested.optional", "")
+        expect(model.values.nested.optional).toBe("")
       })
     })
 
@@ -703,7 +727,7 @@ describe("Model instance", () => {
     describe("when called with a field name", () => {
       type ResetFieldModelObject = {
         foo: string
-        nested: {bar: string; bar2: number}
+        nested: {bar: string; bar2: number; optional: string | undefined}
       }
 
       let model: Model<ResetFieldModelObject>
@@ -713,7 +737,11 @@ describe("Model instance", () => {
         model = new Model<ResetFieldModelObject>(
           {
             foo: {value: "initial", error: "invalid", validate: () => "error"},
-            nested: {bar: {value: "initial"}, bar2: {value: 0}},
+            nested: {
+              bar: {value: "initial"},
+              bar2: {value: 0},
+              optional: {value: undefined},
+            },
           },
           {}
         )
@@ -774,6 +802,13 @@ describe("Model instance", () => {
         model.reset("foo")
 
         expect(model.values.foo).toBe("initial")
+      })
+
+      it("is removed from model values when initial value is undefined", () => {
+        model.fields.nested.optional.change("test")
+        model.reset("nested.optional")
+
+        expect("optional" in model.values.nested).toBeFalsy()
       })
 
       it("works with nested fields", () => {

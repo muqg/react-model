@@ -13,9 +13,10 @@ import {insert, isObject, retrieve} from "./util/ObjectUtils"
 type ModelFieldUtils = Omit<ModelSchemaField, "error" | "value">
 type ModelSubscriber<T extends object = any> = (model: Model<T>) => void
 
-type State = {
+type State<T extends object = any> = {
   errors?: ModelErrors
   submitted?: boolean
+  values?: T
 }
 
 const noop: () => any = () => {}
@@ -51,11 +52,6 @@ export class Model<T extends object = any> implements Model<T> {
    * Model's fields shaped like the target object.
    */
   fields = {} as ModelFieldsTree<T>
-
-  /**
-   * Model's fields' values shaped like the target object.
-   */
-  values = {} as T
 
   private _submitting = false
 
@@ -104,6 +100,30 @@ export class Model<T extends object = any> implements Model<T> {
   }
 
   /**
+   * Model's fields' values shaped like the target object. `undefined`
+   * values are not present, since they are considered to be optional,
+   * and in this case -- not set.
+   */
+  get values(): T {
+    let values = this._mem.values
+
+    if (!values) {
+      values = {}
+
+      this._names.forEach((name) => {
+        const {value} = this.getField(name)
+        if (value !== undefined) {
+          values = insert(values, name, value)
+        }
+      })
+
+      this._mem.values = values
+    }
+
+    return values
+  }
+
+  /**
    * A list of all valid field names.
    */
   private get _names() {
@@ -136,14 +156,7 @@ export class Model<T extends object = any> implements Model<T> {
     const name = field.name
 
     updatedField.touched = true
-
-    // TODO: Warn for unsupported field values e.g. undefined. They are
-    // considered code errors just as is an empty input name.
-    const newValue = changes.value
-    if (newValue !== undefined) {
-      updatedField.dirty = updatedField.initialValue !== newValue
-      this.values = insert(this.values, name, newValue)
-    }
+    updatedField.dirty = updatedField.initialValue !== changes.value
 
     this.fields = insert(this.fields, name, updatedField)
 
@@ -388,7 +401,6 @@ export class Model<T extends object = any> implements Model<T> {
   }
 
   private _clearState() {
-    this.values = {} as any
     this._utils = {}
     this._mem = {}
   }
@@ -428,7 +440,6 @@ export class Model<T extends object = any> implements Model<T> {
     }
 
     this.fields = insert(this.fields, name, field)
-    this.values = insert(this.values, name, value)
 
     if (error) {
       if (!this._mem.errors) {
