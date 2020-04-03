@@ -31,18 +31,6 @@ export type ModelOptions<T extends object = any> = {
   validate: (values: T, errors: ModelErrors) => ModelErrors
 }
 
-export type ModelFieldsTree<T extends object = any> = Required<
-  {
-    [K in keyof T]: T[K] extends JsonPrimitive
-      ? ModelField<T[K]>
-      : T[K] extends object
-      ? T[K] extends Array<any>
-        ? ModelField<T[K]>
-        : ModelFieldsTree<T[K]>
-      : never
-  }
->
-
 export type ModelField<T = any> = {
   /**
    * Change field value.

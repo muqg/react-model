@@ -22,7 +22,7 @@ describe("Model instance", () => {
         {}
       )
 
-      const {error, name, value} = model.fields.foo
+      const {error, name, value} = model.getField("foo")
 
       expect(model.values.foo).toBe("asd")
       expect(value).toBe("asd")
@@ -43,7 +43,7 @@ describe("Model instance", () => {
         {}
       )
 
-      const {error, name, value} = model.fields.nested.foo
+      const {error, name, value} = model.getField("nested.foo")
 
       expect(model.values.nested.foo).toBe(10)
       expect(value).toBe(10)
@@ -58,7 +58,7 @@ describe("Model instance", () => {
         {}
       )
 
-      const {initialValue, value} = model.fields.nested.arr
+      const {initialValue, value} = model.getField("nested.arr")
 
       expect(value).toEqual(data)
       expect(initialValue).toEqual(data)
@@ -92,7 +92,7 @@ describe("Model instance", () => {
     })
 
     it("returns model field for given key", () => {
-      expect(model.getField("foo")).toBe(model.fields.foo)
+      expect(model.getField("foo")).toBe(model.getField("foo"))
     })
 
     it("throws when called with an empty string", () => {
@@ -156,7 +156,7 @@ describe("Model instance", () => {
         const value = 42
         model.setFieldValue("foo", value)
 
-        expect(model.fields.foo.value).toBe(value)
+        expect(model.getField("foo").value).toBe(value)
         expect(model.values.foo).toBe(value)
       })
 
@@ -164,26 +164,19 @@ describe("Model instance", () => {
         model.setFieldValue("parsed", "something else")
 
         expect(parser).toHaveBeenCalled()
-        expect(model.fields.parsed.value).toBe("parsed")
-      })
-
-      it("does not mutate fields object", () => {
-        const fieldsBeforeChange = model.fields
-        model.setFieldValue("foo", 123)
-
-        expect(model.fields).not.toBe(fieldsBeforeChange)
+        expect(model.getField("parsed").value).toBe("parsed")
       })
 
       it("does not mutate the field object iteself", () => {
-        const fieldBeforeChange = model.fields.foo
+        const fieldBeforeChange = model.getField("foo")
         model.setFieldValue("foo", 123)
 
-        expect(model.fields.foo).not.toBe(fieldBeforeChange)
+        expect(model.getField("foo")).not.toBe(fieldBeforeChange)
       })
 
       it("validates field", () => {
         model.setFieldValue("foo", 132)
-        expect(model.fields.foo.error).toBe("error")
+        expect(model.getField("foo").error).toBe("error")
       })
 
       it("notifies on change", () => {
@@ -200,25 +193,27 @@ describe("Model instance", () => {
         model.setFieldValue("nested.val", "changed")
 
         expect(model.isDirty).toBe(true)
-        expect(model.fields.nested.val.dirty).toBe(true)
+        expect(model.getField("nested.val").dirty).toBe(true)
       })
 
       it("marks as not dirty when set back to its initial value", () => {
         model.setFieldValue("nested.val", "changed")
-        model.fields.nested.val.change(model.fields.nested.val.initialValue)
+        const initialValue = model.getField("nested.val").initialValue
+        model.getField("nested.val").change(initialValue)
 
         expect(model.isDirty).toBeFalsy()
-        expect(model.fields.nested.val.dirty).toBeFalsy()
+        expect(model.getField("nested.val").dirty).toBeFalsy()
       })
 
       it("marks as touched", () => {
         model.setFieldValue("nested.val", "changed")
         expect(model.isTouched).toBeTruthy()
-        expect(model.fields.nested.val.touched).toBeTruthy()
+        expect(model.getField("nested.val").touched).toBeTruthy()
 
-        model.setFieldValue("nested.val", model.fields.nested.val.initialValue)
+        const initialValue = model.getField("nested.val").initialValue
+        model.setFieldValue("nested.val", initialValue)
         expect(model.isTouched).toBeTruthy()
-        expect(model.fields.nested.val.touched).toBeTruthy()
+        expect(model.getField("nested.val").touched).toBeTruthy()
       })
 
       it("validates value and updates error", () => {
@@ -228,19 +223,19 @@ describe("Model instance", () => {
           }
         })
 
-        model.fields.foo.change(0)
-        expect(model.fields.foo.error).toBe("error")
+        model.getField("foo").change(0)
+        expect(model.getField("foo").error).toBe("error")
 
-        model.fields.foo.change(123)
-        expect(model.fields.foo.error).toBeFalsy()
+        model.getField("foo").change(123)
+        expect(model.getField("foo").error).toBeFalsy()
       })
 
       it("does not validate when shouldValidate argument is false", () => {
         model.setFieldValue("foo", 123, false)
-        expect(model.fields.foo.error).toBeFalsy()
+        expect(model.getField("foo").error).toBeFalsy()
 
-        model.fields.foo.change(124, false)
-        expect(model.fields.foo.error).toBeFalsy()
+        model.getField("foo").change(124, false)
+        expect(model.getField("foo").error).toBeFalsy()
       })
 
       it("is not included in model values when set to undefined", () => {
@@ -259,7 +254,7 @@ describe("Model instance", () => {
 
       it("does not mark as dirty when value is the same as the initial one", () => {
         expect(model.isDirty).toBe(false)
-        expect(model.fields.nested.val.dirty).toBe(false)
+        expect(model.getField("nested.val").dirty).toBe(false)
       })
 
       it("does not validate", () => {
@@ -288,59 +283,41 @@ describe("Model instance", () => {
 
     it("works with name", () => {
       const input = React.createRef<HTMLInputElement>()
-      render(
-        <input
-          name={model.fields.foo.name}
-          onChange={model.handleChange}
-          ref={input}
-        />
-      )
+      render(<input name="foo" onChange={model.handleChange} ref={input} />)
       userEvent.type(input.current!, "asd")
 
-      expect(model.fields.foo.value).toBe("asd")
+      expect(model.getField("foo").value).toBe("asd")
     })
 
     it("works with id", () => {
       const input = React.createRef<HTMLInputElement>()
-      render(
-        <input
-          id={model.fields.foo.name}
-          onChange={model.handleChange}
-          ref={input}
-        />
-      )
+      render(<input id="foo" onChange={model.handleChange} ref={input} />)
       userEvent.type(input.current!, "asd")
 
-      expect(model.fields.foo.value).toBe("asd")
+      expect(model.getField("foo").value).toBe("asd")
     })
 
     it("works on blur", () => {
       const input = React.createRef<HTMLInputElement>()
-      render(
-        <input
-          name={model.fields.foo.name}
-          onBlur={model.handleChange}
-          ref={input}
-        />
-      )
+      render(<input name="foo" onBlur={model.handleChange} ref={input} />)
       userEvent.type(input.current!, "asd")
       fireEvent.blur(input.current!)
 
-      expect(model.fields.foo.value).toBe("asd")
+      expect(model.getField("foo").value).toBe("asd")
     })
 
     it("does not validate when shouldValidate argument is false", () => {
       const input = React.createRef<HTMLInputElement>()
       render(
         <input
-          id={model.fields.foo.name}
+          id="foo"
           onChange={(e) => model.handleChange(e, false)}
           ref={input}
         />
       )
       userEvent.type(input.current!, "asd")
 
-      expect(model.fields.foo.error).toBeFalsy()
+      expect(model.getField("foo").error).toBeFalsy()
     })
   })
 
@@ -387,14 +364,14 @@ describe("Model instance", () => {
 
     it("revalidates fields after a model change", () => {
       const errors = model.getErrors()
-      model.fields.valid.change("test change")
+      model.getField("valid").change("test change")
 
       expect(model.getErrors()).not.toBe(errors)
     })
 
     it("revalidates fields after a field reset", () => {
       const errors = model.getErrors()
-      model.fields.invalid.reset()
+      model.getField("invalid").reset()
 
       expect(model.getErrors()).not.toBe(errors)
     })
@@ -453,27 +430,20 @@ describe("Model instance", () => {
 
     it("validates field", () => {
       model.validateField("foo")
-      expect(model.fields.foo.error).toBe("error")
+      expect(model.getField("foo").error).toBe("error")
     })
 
     it("does not mutate field", () => {
-      const fieldBeforeValidation = model.fields.foo
+      const fieldBeforeValidation = model.getField("foo")
       model.validateField("foo")
 
-      expect(model.fields.foo).not.toBe(fieldBeforeValidation)
-    })
-
-    it("does not mutate model fields", () => {
-      const fieldsBeforeValidation = model.fields
-      model.validateField("foo")
-
-      expect(model.fields).not.toBe(fieldsBeforeValidation)
+      expect(model.getField("foo")).not.toBe(fieldBeforeValidation)
     })
 
     it("marks as touched", () => {
       model.validateField("foo")
       expect(model.isTouched).toBeTruthy()
-      expect(model.fields.foo.touched).toBeTruthy()
+      expect(model.getField("foo").touched).toBeTruthy()
     })
 
     it("notifies subscribers", () => {
@@ -491,16 +461,16 @@ describe("Model instance", () => {
 
     it("does not mutate field when current error is the same as the previous one", () => {
       model.validateField("foo")
-      const fieldBeforeRevalidation = model.fields.foo
+      const fieldBeforeRevalidation = model.getField("foo")
       model.validateField("foo")
 
-      expect(model.fields.foo).toBe(fieldBeforeRevalidation)
+      expect(model.getField("foo")).toBe(fieldBeforeRevalidation)
     })
 
     it("does nothing for fields with no validation provided", () => {
       model.validateField("noValidation")
 
-      expect(model.fields.noValidation.error).toBeUndefined()
+      expect(model.getField("noValidation").error).toBeUndefined()
       expect(subscriber).not.toHaveBeenCalled()
     })
   })
@@ -592,7 +562,7 @@ describe("Model instance", () => {
         expect.assertions(1)
 
         onSubmit.mockImplementation((model: Model<SuccessModelObject>) => {
-          expect(model.fields.foo.value).toBe("changed")
+          expect(model.getField("foo").value).toBe("changed")
         })
 
         model.submit(submission)
@@ -617,7 +587,7 @@ describe("Model instance", () => {
 
       it("can be submitted again after a model change", async () => {
         await model.submit(submission)
-        model.fields.foo.change("test")
+        model.getField("foo").change("test")
         await model.submit(submission)
 
         expect(submission).toHaveBeenCalledTimes(2)
@@ -625,7 +595,7 @@ describe("Model instance", () => {
 
       it("can be submitted again after a field reset", async () => {
         await model.submit(submission, handleError)
-        model.fields.foo.reset()
+        model.getField("foo").reset()
         await model.submit(submission, handleError)
 
         expect(submission).toHaveBeenCalledTimes(2)
@@ -685,7 +655,7 @@ describe("Model instance", () => {
       })
 
       it("sets fields to their initial state", () => {
-        expect(model.fields.foo.value).toBe("initial")
+        expect(model.getField("foo").value).toBe("initial")
       })
 
       it("is not marked as dirty", () => {
@@ -751,31 +721,31 @@ describe("Model instance", () => {
       })
 
       it("sets initial value", () => {
-        model.fields.foo.change("changed")
+        model.getField("foo").change("changed")
         model.reset("foo")
 
-        expect(model.fields.foo.value).toBe("initial")
+        expect(model.getField("foo").value).toBe("initial")
       })
 
       it("sets initial error", () => {
-        model.fields.foo.validate()
+        model.getField("foo").validate()
         model.reset("foo")
 
-        expect(model.fields.foo.error).toBe("invalid")
+        expect(model.getField("foo").error).toBe("invalid")
       })
 
       it("makes field not dirty", () => {
-        model.fields.foo.change("changed")
+        model.getField("foo").change("changed")
         model.reset("foo")
 
-        expect(model.fields.foo.dirty).toBeFalsy()
+        expect(model.getField("foo").dirty).toBeFalsy()
       })
 
       it("field is not touched", () => {
-        model.fields.foo.change("changed")
+        model.getField("foo").change("changed")
         model.reset("foo")
 
-        expect(model.fields.foo.touched).toBeFalsy()
+        expect(model.getField("foo").touched).toBeFalsy()
       })
 
       it("notifies subscribers", () => {
@@ -784,49 +754,42 @@ describe("Model instance", () => {
       })
 
       it("does not mutate field", () => {
-        const fieldBeforeChange = model.fields.foo
+        const fieldBeforeChange = model.getField("foo")
         model.reset("foo")
 
-        expect(model.fields.foo).not.toBe(fieldBeforeChange)
-      })
-
-      it("does not mutate model fields", () => {
-        const fieldsBeforeChange = model.fields
-        model.reset("foo")
-
-        expect(model.fields).not.toBe(fieldsBeforeChange)
+        expect(model.getField("foo")).not.toBe(fieldBeforeChange)
       })
 
       it("updates model values", () => {
-        model.fields.foo.change("changed")
+        model.getField("foo").change("changed")
         model.reset("foo")
 
         expect(model.values.foo).toBe("initial")
       })
 
       it("is removed from model values when initial value is undefined", () => {
-        model.fields.nested.optional.change("test")
+        model.getField("nested.optional").change("test")
         model.reset("nested.optional")
 
         expect("optional" in model.values.nested).toBeFalsy()
       })
 
       it("works with nested fields", () => {
-        model.fields.nested.bar.change("changed")
+        model.getField("nested.bar").change("changed")
         model.reset("nested.bar")
 
-        expect(model.fields.nested.bar.value).toBe("initial")
+        expect(model.getField("nested.bar").value).toBe("initial")
       })
 
       it("resets all nested fields for a given partial field name", () => {
-        model.fields.foo.change("changed")
-        model.fields.nested.bar.change("changed")
-        model.fields.nested.bar2.change(1)
+        model.getField("foo").change("changed")
+        model.getField("nested.bar").change("changed")
+        model.getField("nested.bar2").change(1)
         model.reset("nested")
 
-        expect(model.fields.foo.value).toBe("changed")
-        expect(model.fields.nested.bar.value).toBe("initial")
-        expect(model.fields.nested.bar2.value).toBe(0)
+        expect(model.getField("foo").value).toBe("changed")
+        expect(model.getField("nested.bar").value).toBe("initial")
+        expect(model.getField("nested.bar2").value).toBe(0)
       })
     })
   })

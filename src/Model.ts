@@ -2,7 +2,6 @@ import {ParseableEvent, parseEventInput} from "./parseEventInput"
 import {
   ModelErrors,
   ModelField,
-  ModelFieldsTree,
   ModelOptions,
   ModelSchema,
   ModelSchemaField,
@@ -48,11 +47,6 @@ function isEventInput(input: any): input is ParseableEvent {
 }
 
 export class Model<T extends object = any> implements Model<T> {
-  /**
-   * Model's fields shaped like the target object.
-   */
-  fields = {} as ModelFieldsTree<T>
-
   private _submitting = false
 
   /**
@@ -60,6 +54,7 @@ export class Model<T extends object = any> implements Model<T> {
    * which are cleared on model value change.
    */
   private _mem: State = {}
+  private _fields: Record<string, ModelField> = {}
   private _utils: Record<string, ModelFieldUtils> = {}
 
   private readonly _options: ModelOptions<T>
@@ -77,14 +72,14 @@ export class Model<T extends object = any> implements Model<T> {
    * Whether any of the model's fields is dirty.
    */
   get isDirty() {
-    return this._names.some((name) => this.getField(name).dirty)
+    return Object.values(this._fields).some((f) => f.dirty)
   }
 
   /**
    * Whether any of the model's fields is touched.
    */
   get isTouched() {
-    return this._names.some((name) => this.getField(name).touched)
+    return Object.values(this._fields).some((f) => f.touched)
   }
 
   /**
@@ -110,8 +105,7 @@ export class Model<T extends object = any> implements Model<T> {
     if (!values) {
       values = {}
 
-      this._names.forEach((name) => {
-        const {value} = this.getField(name)
+      Object.values(this._fields).forEach(({name, value}) => {
         if (value !== undefined) {
           values = insert(values, name, value)
         }
@@ -124,21 +118,14 @@ export class Model<T extends object = any> implements Model<T> {
   }
 
   /**
-   * A list of all valid field names.
-   */
-  private get _names() {
-    return Object.keys(this._utils)
-  }
-
-  /**
    * Returns a model field using dot notation.
    *
    * @param name Target field name using dot notation.
    */
   getField<T = any>(name: string): ModelField<T> {
-    const field = retrieve(this.fields, name)
+    const field = this._fields[name]
 
-    if (field === undefined || this._names.indexOf(name) === -1) {
+    if (!field) {
       throw new Error(
         `Missing model field: ${name}\n` +
           "This field was not part of the initial schema and is possibly an error in your code."
@@ -158,7 +145,7 @@ export class Model<T extends object = any> implements Model<T> {
     updatedField.touched = true
     updatedField.dirty = updatedField.initialValue !== changes.value
 
-    this.fields = insert(this.fields, name, updatedField)
+    this._fields[name] = updatedField
 
     return updatedField
   }
@@ -188,7 +175,7 @@ export class Model<T extends object = any> implements Model<T> {
       // TODO: Consider implementing as a DEV only warning.
       console.warn(
         "Attempting to change a model value for input with no name or id. " +
-          "This is possibly an error and you have forgot to give your input a name."
+          "This is possibly an error and you have forgotten to give your input a name."
       )
       return
     }
@@ -199,7 +186,7 @@ export class Model<T extends object = any> implements Model<T> {
     const {parse} = this._utils[name]
 
     if (parse) {
-      value = parse(input, retrieve(this.values, name), name)
+      value = parse(input, field.value, name)
     } else if (isEventInput(input)) {
       value = parseEventInput(input)
     }
@@ -244,10 +231,10 @@ export class Model<T extends object = any> implements Model<T> {
     if (!this._mem.errors) {
       const errors: ModelErrors = {}
 
-      this._names.forEach((name) => {
-        const error = this._performFieldValidation(this.getField(name))
+      Object.values(this._fields).forEach((field) => {
+        const error = this._performFieldValidation(field)
         if (error) {
-          errors[name] = error
+          errors[field.name] = error
         }
       })
 
@@ -272,7 +259,7 @@ export class Model<T extends object = any> implements Model<T> {
    */
   validateField(name: string): ModelValidationError {
     const field = this.getField(name)
-    const error = this._performFieldValidation(this.getField(name))
+    const error = this._performFieldValidation(field)
 
     // Don't notify if the field's error is the same as the
     // previous one in order to bail out of unnecessary updates.
@@ -376,7 +363,7 @@ export class Model<T extends object = any> implements Model<T> {
     let shouldNotify = true
 
     if (name) {
-      shouldNotify = this._for(name, (name) => {
+      shouldNotify = this._for(name, ({name}) => {
         const fieldSchema = retrieve(this._schema, name)
         if (!fieldSchema) {
           return
@@ -439,7 +426,7 @@ export class Model<T extends object = any> implements Model<T> {
       validate: () => this.validateField(name),
     }
 
-    this.fields = insert(this.fields, name, field)
+    this._fields[name] = field
 
     if (error) {
       if (!this._mem.errors) {
@@ -456,23 +443,23 @@ export class Model<T extends object = any> implements Model<T> {
    * @param search A fully qualified field name or partial field name using dot
    * notation.
    * @param cb An action to perform for each field name
+   *
+   * @returns Returns `true` if at least one field was found, and therefore the
+   * callback executed at least once. Returns `false` otherwise.
    */
-  private _for(search: string, cb: (name: string) => void): boolean {
-    let names = this._names
+  private _for(search: string, cb: (name: ModelField) => void): boolean {
+    let fields = Object.values(this._fields)
 
-    if (names.indexOf(search) >= 0) {
-      names = [search]
+    const directFieldMatch = this._fields[search]
+    if (directFieldMatch) {
+      fields = [directFieldMatch]
     } else {
       const dotSearch = search + "."
-      names = names.filter((name) => name.indexOf(dotSearch) === 0)
+      fields = fields.filter(({name}) => name.indexOf(dotSearch) === 0)
     }
 
-    if (names.length === 0) {
-      return false
-    }
-
-    names.forEach(cb)
-    return true
+    fields.forEach(cb)
+    return fields.length > 0
   }
 
   // TODO: Consider using React's useMutableSource hook once it becomes

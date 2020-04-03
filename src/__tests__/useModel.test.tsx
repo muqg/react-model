@@ -30,16 +30,16 @@ describe("Model hook", () => {
     })
     const model = hook.result.current
 
-    expect(model.fields.foo.value).toBe("val")
-    expect(model.fields.foo.error).toBe("err")
+    expect(model.getField("foo").value).toBe("val")
+    expect(model.getField("foo").error).toBe("err")
   })
 
   it("works with schema", () => {
     const hook = renderHook(() => useModel({foo: {value: 1, error: "test"}}))
     const model = hook.result.current
 
-    expect(model.fields.foo.value).toBe(1)
-    expect(model.fields.foo.error).toBe("test")
+    expect(model.getField("foo").value).toBe(1)
+    expect(model.getField("foo").error).toBe("test")
   })
 
   it("prefers schema over context", () => {
@@ -51,6 +51,6 @@ describe("Model hook", () => {
     )
     const model = hook.result.current
 
-    expect(model.fields.foo.value).toBe("schema")
+    expect(model.getField("foo").value).toBe("schema")
   })
 })
