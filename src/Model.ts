@@ -47,6 +47,12 @@ function isEventInput(input: any): input is ParseableEvent {
 }
 
 export class Model<T extends object = any> implements Model<T> {
+  /**
+   * Represents custom model state, which is meant to allow users to modify
+   * model and form behaviour based on it, such as providing error state on
+   * failed submission.
+   */
+  private _state: any
   private _submitting = false
 
   /**
@@ -87,6 +93,14 @@ export class Model<T extends object = any> implements Model<T> {
    */
   get isSubmitting() {
     return this._submitting
+  }
+
+  /**
+   * A custom state which can hold any custom value, allowing for model and form
+   * customizations, such as holding the error state after a failed submission.
+   */
+  get state() {
+    return this._state
   }
 
   /**
@@ -460,6 +474,19 @@ export class Model<T extends object = any> implements Model<T> {
 
     fields.forEach(cb)
     return fields.length > 0
+  }
+
+  /**
+   * Set the custom model state.
+   *
+   * @param state Either a state value or a function which receives the previous
+   * state as argument and should return the new one.
+   */
+  setState<S = any>(state: ((prev: S) => S) | S): void {
+    this._state =
+      typeof state === "function" ? (state as any)(this._state) : state
+
+    this._notify()
   }
 
   // TODO: Consider using React's useMutableSource hook once it becomes

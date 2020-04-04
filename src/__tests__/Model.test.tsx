@@ -793,4 +793,30 @@ describe("Model instance", () => {
       })
     })
   })
+
+  describe("state", () => {
+    let model: Model
+
+    beforeEach(() => {
+      model = new Model<any>({foo: {value: 1}}, {})
+    })
+
+    it("notifies subscribers when setting a new state", () => {
+      const subscriber = jest.fn()
+      model._subscribe(subscriber)
+
+      model.setState("test")
+
+      expect(subscriber).toHaveBeenCalled()
+    })
+
+    it("can be given a function to derive state from", () => {
+      model.setState({val: "test"})
+      model.setState(prev => {
+        return {...prev, another: "test"}
+      })
+
+      expect(model.state).toEqual({val: "test", another: "test"})
+    })
+  })
 })
