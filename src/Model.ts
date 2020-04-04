@@ -89,11 +89,6 @@ export class Model<T extends object = any> implements Model<T> {
     return this._submitting
   }
 
-  set isSubmitting(value: boolean) {
-    this._submitting = value
-    this._notify()
-  }
-
   /**
    * Model's fields' values shaped like the target object. `undefined`
    * values are not present, since they are considered to be optional,
@@ -303,7 +298,7 @@ export class Model<T extends object = any> implements Model<T> {
     }
 
     try {
-      this.isSubmitting = true
+      this._setSubmitting(true)
       this._mem.submitted = true
 
       const errors = this.validate()
@@ -329,8 +324,13 @@ export class Model<T extends object = any> implements Model<T> {
 
       throw err
     } finally {
-      this.isSubmitting = false
+      this._setSubmitting(false)
     }
+  }
+
+  private _setSubmitting(value: boolean): void {
+    this._submitting = value
+    this._notify()
   }
 
   /**
