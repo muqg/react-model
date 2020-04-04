@@ -37,12 +37,12 @@ describe("Field hook", () => {
 
   it("rerenders only itself on change", () => {
     const FooComponent = jest.fn(() => {
-      const {change, name} = useField("foo")
-      return <input data-testid={name} name={name} onChange={change} />
+      const {setValue, name} = useField("foo")
+      return <input data-testid={name} name={name} onChange={setValue} />
     }) as React.FunctionComponent
     const BarComponent = jest.fn(() => {
-      const {change, name} = useField("bar")
-      return <input data-testid={name} name={name} onChange={change} />
+      const {setValue, name} = useField("bar")
+      return <input data-testid={name} name={name} onChange={setValue} />
     }) as React.FunctionComponent
 
     const {getByTestId} = render(

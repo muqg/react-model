@@ -199,7 +199,7 @@ describe("Model instance", () => {
       it("marks as not dirty when set back to its initial value", () => {
         model.setFieldValue("nested.val", "changed")
         const initialValue = model.getField("nested.val").initialValue
-        model.getField("nested.val").change(initialValue)
+        model.getField("nested.val").setValue(initialValue)
 
         expect(model.isDirty).toBeFalsy()
         expect(model.getField("nested.val").dirty).toBeFalsy()
@@ -223,10 +223,10 @@ describe("Model instance", () => {
           }
         })
 
-        model.getField("foo").change(0)
+        model.getField("foo").setValue(0)
         expect(model.getField("foo").error).toBe("error")
 
-        model.getField("foo").change(123)
+        model.getField("foo").setValue(123)
         expect(model.getField("foo").error).toBeFalsy()
       })
 
@@ -234,7 +234,7 @@ describe("Model instance", () => {
         model.setFieldValue("foo", 123, false)
         expect(model.getField("foo").error).toBeFalsy()
 
-        model.getField("foo").change(124, false)
+        model.getField("foo").setValue(124, false)
         expect(model.getField("foo").error).toBeFalsy()
       })
 
@@ -364,7 +364,7 @@ describe("Model instance", () => {
 
     it("revalidates fields after a model change", () => {
       const errors = model.getErrors()
-      model.getField("valid").change("test change")
+      model.getField("valid").setValue("test change")
 
       expect(model.getErrors()).not.toBe(errors)
     })
@@ -587,7 +587,7 @@ describe("Model instance", () => {
 
       it("can be submitted again after a model change", async () => {
         await model.submit(submission)
-        model.getField("foo").change("test")
+        model.getField("foo").setValue("test")
         await model.submit(submission)
 
         expect(submission).toHaveBeenCalledTimes(2)
@@ -721,7 +721,7 @@ describe("Model instance", () => {
       })
 
       it("sets initial value", () => {
-        model.getField("foo").change("changed")
+        model.getField("foo").setValue("changed")
         model.reset("foo")
 
         expect(model.getField("foo").value).toBe("initial")
@@ -735,14 +735,14 @@ describe("Model instance", () => {
       })
 
       it("makes field not dirty", () => {
-        model.getField("foo").change("changed")
+        model.getField("foo").setValue("changed")
         model.reset("foo")
 
         expect(model.getField("foo").dirty).toBeFalsy()
       })
 
       it("field is not touched", () => {
-        model.getField("foo").change("changed")
+        model.getField("foo").setValue("changed")
         model.reset("foo")
 
         expect(model.getField("foo").touched).toBeFalsy()
@@ -761,30 +761,30 @@ describe("Model instance", () => {
       })
 
       it("updates model values", () => {
-        model.getField("foo").change("changed")
+        model.getField("foo").setValue("changed")
         model.reset("foo")
 
         expect(model.values.foo).toBe("initial")
       })
 
       it("is removed from model values when initial value is undefined", () => {
-        model.getField("nested.optional").change("test")
+        model.getField("nested.optional").setValue("test")
         model.reset("nested.optional")
 
         expect("optional" in model.values.nested).toBeFalsy()
       })
 
       it("works with nested fields", () => {
-        model.getField("nested.bar").change("changed")
+        model.getField("nested.bar").setValue("changed")
         model.reset("nested.bar")
 
         expect(model.getField("nested.bar").value).toBe("initial")
       })
 
       it("resets all nested fields for a given partial field name", () => {
-        model.getField("foo").change("changed")
-        model.getField("nested.bar").change("changed")
-        model.getField("nested.bar2").change(1)
+        model.getField("foo").setValue("changed")
+        model.getField("nested.bar").setValue("changed")
+        model.getField("nested.bar2").setValue(1)
         model.reset("nested")
 
         expect(model.getField("foo").value).toBe("changed")

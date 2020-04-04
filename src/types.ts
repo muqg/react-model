@@ -33,14 +33,6 @@ export type ModelOptions<T extends object = any> = {
 
 export type ModelField<T = any> = {
   /**
-   * Change field value.
-   *
-   * @param input Input for the value change.
-   * @param shouldValidate Whether the value should be validated. Enabled
-   * by default.
-   */
-  change(input: any, shouldValidate?: boolean): void
-  /**
    * Whether the value of the field has been changed.
    */
   dirty: boolean
@@ -60,6 +52,16 @@ export type ModelField<T = any> = {
    * Reset field to its initial state.
    */
   reset(): void
+  /**
+   * Set field value.
+   *
+   * @param input Input for the value change. Input is passed through the
+   * default or custom schema parser, and can therefore be any value supported
+   * by it.
+   * @param shouldValidate Whether the value should be validated. By default
+   * this is enabled and the newly set value is validated.
+   */
+  setValue(input: any, shouldValidate?: boolean): void
   /**
    * Whether the field was changed, validated or otherwise modified
    * since its initialization or the last time it was reset.

@@ -6,12 +6,12 @@ import {useForceUpdate} from "./util/useForceUpdate"
 const noop: () => any = () => {}
 
 const EmptyField: ModelField = {
-  change: noop,
   dirty: false,
   error: undefined,
   initialValue: "",
   name: "",
   reset: noop,
+  setValue: noop,
   touched: false,
   validate: noop,
   value: "",

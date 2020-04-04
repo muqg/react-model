@@ -417,11 +417,11 @@ export class Model<T extends object = any> implements Model<T> {
       name,
       value,
 
-      change: (input, shouldValidate) =>
-        this.setFieldValue(name, input, shouldValidate),
       dirty: false,
       initialValue: value,
       reset: () => this.reset(name),
+      setValue: (input, shouldValidate) =>
+        this.setFieldValue(name, input, shouldValidate),
       touched: false,
       validate: () => this.validateField(name),
     }
