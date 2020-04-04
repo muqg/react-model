@@ -52,7 +52,7 @@ export class Model<T extends object = any> implements Model<T> {
    * model and form behaviour based on it, such as providing error state on
    * failed submission.
    */
-  private _state: any
+  private _state = {}
   private _submitting = false
 
   /**
@@ -480,11 +480,16 @@ export class Model<T extends object = any> implements Model<T> {
    * Set the custom model state.
    *
    * @param state Either a state value or a function which receives the previous
-   * state as argument and should return the new one.
+   * state as argument and should return the new one. The input state or the
+   * state result from the function is shallowly merged with the existing state.
    */
-  setState<S = any>(state: ((prev: S) => S) | S): void {
-    this._state =
-      typeof state === "function" ? (state as any)(this._state) : state
+  setState<S extends object = any>(state: React.SetStateAction<S>): void {
+    let update: any = state
+    if (typeof state === "function") {
+      update = (state as any)(this._state)
+    }
+
+    this._state = {...this._state, ...update}
 
     this._notify()
   }

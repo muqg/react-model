@@ -801,19 +801,30 @@ describe("Model instance", () => {
       model = new Model<any>({foo: {value: 1}}, {})
     })
 
+    it("merges input shallowly with current state", () => {
+      model.setState({test: true})
+      model.setState({foo: true})
+
+      expect(model.state).toEqual({test: true, foo: true})
+
+      model.setState({test: false, foo: {deep: true}})
+
+      expect(model.state).toEqual({foo: {deep: true}, test: false})
+    })
+
     it("notifies subscribers when setting a new state", () => {
       const subscriber = jest.fn()
       model._subscribe(subscriber)
 
-      model.setState("test")
+      model.setState({test: true})
 
       expect(subscriber).toHaveBeenCalled()
     })
 
     it("can be given a function to derive state from", () => {
       model.setState({val: "test"})
-      model.setState(prev => {
-        return {...prev, another: "test"}
+      model.setState(({val}) => {
+        return {another: val}
       })
 
       expect(model.state).toEqual({val: "test", another: "test"})
