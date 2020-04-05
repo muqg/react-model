@@ -14,15 +14,10 @@ const ContextProvider = jest.fn(({children}: PropsWithChildren<{}>) => {
 }) as React.FunctionComponent
 
 describe("Field hook", () => {
-  it("throws when called outside of model context", () => {
-    const hook = renderHook(() => useField(""))
-    const search = "can only be used in children of <ModelProvider />"
-
-    expect(hook.result.error).toBeInstanceOf(Error)
-    expect(hook.result.error.message.includes(search)).toBeTruthy()
-  })
-
   it("does not throw when field name is empty", () => {
+    const withoutContext = renderHook(() => useField(""))
+    expect(withoutContext.result.error).toBeUndefined()
+
     const hook = renderHook(() => useField(""), {wrapper: ContextProvider})
     expect(hook.result.error).toBeUndefined()
   })

@@ -18,16 +18,6 @@ const Provider = ({children}: PropsWithChildren<{}>) => {
 }
 
 describe("Model hook", () => {
-  it("throws when called with no arguments outside of model context", () => {
-    const hook = renderHook(() => useModel())
-    const {message} = hook.result.error
-
-    expect(message).toBe(
-      "useModel hook can only be called with no arguments or a selector in children of " +
-        "<ModelProvider />, otherwise you should provide it with an object schema."
-    )
-  })
-
   it("works with model context", () => {
     const hook = renderHook(() => useModel<ProviderModelObject>(), {
       wrapper: Provider,

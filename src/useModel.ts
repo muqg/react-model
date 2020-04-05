@@ -5,16 +5,6 @@ import {ModelOptions, ModelSchema} from "./types"
 import {isObject} from "./util/ObjectUtils"
 import {useForceUpdate} from "./util/useForceUpdate"
 
-function assertContextModel(maybeModel: any): asserts maybeModel {
-  if (!maybeModel) {
-    throw new Error(
-      "useModel hook can only be called with no arguments or a selector in children of " +
-        "<ModelProvider />, otherwise you should provide it with an object schema."
-    )
-  }
-  return maybeModel
-}
-
 /**
  * Access model from context.
  *
@@ -46,14 +36,13 @@ export function useModel(
   schemaOrSelector?: ModelSchema | string,
   options: Partial<ModelOptions> = {}
 ): Model | Model[keyof Model] {
-  const maybeContextModel = useContext(ModelContext) as Model | null
+  const contextModel = useContext(ModelContext)
 
   const model = useMemo<Model>(() => {
     if (isObject<ModelSchema>(schemaOrSelector)) {
       return new Model(schemaOrSelector, options)
     } else {
-      assertContextModel(maybeContextModel)
-      return maybeContextModel
+      return contextModel
     }
   }, [])
 

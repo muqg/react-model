@@ -10,7 +10,7 @@ type Props<T extends object> = {
   schema: ModelSchema<T>
 } & Partial<ModelOptions<T>>
 
-export const ModelContext = createContext<Model | null>(null)
+export const ModelContext = createContext(new Model<any>({}, {}))
 
 /**
  * Creates a model instance and provides it to its children via context.
