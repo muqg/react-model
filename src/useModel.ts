@@ -1,4 +1,4 @@
-import {useContext, useEffect, useMemo} from "react"
+import {useContext, useEffect, useMemo, useDebugValue} from "react"
 import {Model} from "./Model"
 import {ModelContext} from "./ModelProvider"
 import {ModelOptions, ModelSchema} from "./types"
@@ -36,24 +36,32 @@ export function useModel(
   schemaOrSelector?: ModelSchema | string,
   options: Partial<ModelOptions> = {}
 ): Model | Model[keyof Model] {
+  let debugValue: string | undefined
+
   const contextModel = useContext(ModelContext)
 
   const model = useMemo<Model>(() => {
     if (isObject<ModelSchema>(schemaOrSelector)) {
+      debugValue = "From schema"
       return new Model(schemaOrSelector, options)
     } else {
+      debugValue = "From context"
       return contextModel
     }
   }, [])
 
   let result: any = model
   if (typeof schemaOrSelector === "string") {
+    debugValue = schemaOrSelector
+
     if (schemaOrSelector.indexOf("_") === -1) {
       result = model[schemaOrSelector]
     } else {
       result = undefined
     }
   }
+
+  useDebugValue(debugValue)
 
   // TODO: Consider using React's useMutableSource hook once it becomes
   // available in place of the subscription based implementation.
