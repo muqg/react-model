@@ -77,6 +77,11 @@ describe("Model instance", () => {
 
       expect("empty" in model.values.nested).toBeFalsy()
     })
+
+    it("initializes model state to the value of options.initialState", () => {
+      const model = new Model({}, {initialState: {test: true}})
+      expect(model.state).toEqual({test: true})
+    })
   })
 
   describe("getField() method", () => {
@@ -683,6 +688,15 @@ describe("Model instance", () => {
         model.submit(submission)
 
         expect(submission).toHaveBeenCalledTimes(2)
+      })
+
+      it("sets model state to the value of options.initialState", () => {
+        const model = new Model({}, {initialState: {val: "initial"}})
+        model.setState({val: "changed"})
+
+        model.reset()
+
+        expect(model.state).toEqual({val: "initial"})
       })
 
       it("notifies subscribers", () => {

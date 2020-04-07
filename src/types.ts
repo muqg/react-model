@@ -10,6 +10,11 @@ export type ModelErrors = Record<string, ModelValidationError>
 
 export type ModelOptions<T extends object = any> = {
   /**
+   * Initial value for the model state property.
+   */
+  initialState: object
+
+  /**
    * Called any time a model value changes.
    */
   onChange: (model: Model<T>) => void

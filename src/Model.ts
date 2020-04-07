@@ -21,6 +21,7 @@ type State<T extends object = any> = {
 const noop: () => any = () => {}
 
 const DefaultOptions: ModelOptions = {
+  initialState: {},
   onChange: noop,
   onReset: noop,
   onSubmit: noop,
@@ -404,6 +405,7 @@ export class Model<T extends object = any> implements Model<T> {
   private _clearState() {
     this._utils = {}
     this._mem = {}
+    this._state = this._options.initialState
   }
 
   private _setupInitialFieldState(name = "") {
