@@ -27,15 +27,9 @@ const EmptyField: ModelField = {
  * a valid model field name, except when it is an empty string.
  */
 export function useField<T = any>(name: string = ""): ModelField<T> {
-  const model = useContext(ModelContext)
-
-  if (!model) {
-    throw new Error(
-      "useModel hook can only be used in children of <ModelProvider />"
-    )
-  }
-
   useDebugValue(name)
+
+  const model = useContext(ModelContext)
 
   // An empty field should be returned in cases where the name is an empty
   // string. This allows inputs to work in an uncontrolled, headless manner
