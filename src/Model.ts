@@ -131,7 +131,7 @@ export class Model<T extends object = any> implements Model<T> {
    *
    * @param name Target field name using dot notation.
    */
-  getField<T = any>(name: string): ModelField<T> {
+  getField = <T = any>(name: string): ModelField<T> => {
     const field = this._fields[name]
 
     if (!field) {
@@ -179,7 +179,7 @@ export class Model<T extends object = any> implements Model<T> {
    * @param shouldValidate Whether the value should be validated. Enabled
    * by default.
    */
-  setFieldValue(name: string, input: any, shouldValidate = true): void {
+  setFieldValue = (name: string, input: any, shouldValidate = true): void => {
     if (!name) {
       // TODO: Consider implementing as a DEV only warning.
       console.warn(
@@ -236,7 +236,7 @@ export class Model<T extends object = any> implements Model<T> {
    * Get model errors. This method performs validation on all model fields,
    * without notifying subscribers and hence not causing a render/update.
    */
-  getErrors(): ModelErrors {
+  getErrors = (): ModelErrors => {
     if (!this._mem.errors) {
       const errors: ModelErrors = {}
 
@@ -257,7 +257,7 @@ export class Model<T extends object = any> implements Model<T> {
   /**
    * Wether any of the fields does not pass validation and has an error.
    */
-  hasError(): boolean {
+  hasError = (): boolean => {
     return Object.keys(this.getErrors()).length > 0
   }
 
@@ -266,7 +266,7 @@ export class Model<T extends object = any> implements Model<T> {
    *
    * @param name Target field name using dot notation.
    */
-  validateField(name: string): ModelValidationError {
+  validateField = (name: string): ModelValidationError => {
     const field = this.getField(name)
     const error = this._performFieldValidation(field)
 
@@ -300,10 +300,10 @@ export class Model<T extends object = any> implements Model<T> {
    * @param handleError Called instead of the submit callback whenever the model
    * has an error.
    */
-  async submit<R = any>(
+  submit = async <R = any>(
     submit: (data: T) => R,
     handleError: (errors: ModelErrors) => void = noop
-  ): Promise<R | undefined> {
+  ): Promise<R | undefined> => {
     // Should not be allowed to be called more than once, unless there was
     // a model change, in which case this variable should have been reset
     // to `false` or `undefined`.
@@ -483,7 +483,7 @@ export class Model<T extends object = any> implements Model<T> {
    * state as argument and should return the new one. The input state or the
    * state result from the function is shallowly merged with the existing state.
    */
-  setState<S extends object = any>(state: React.SetStateAction<S>): void {
+  setState = <S extends object = any>(state: React.SetStateAction<S>): void => {
     let update: any = state
     if (typeof state === "function") {
       update = (state as any)(this._state)
