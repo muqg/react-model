@@ -1,4 +1,4 @@
-import React, {createContext, useMemo} from "react"
+import React, {createContext, useEffect, useMemo} from "react"
 import {Model} from "./Model"
 import {ModelOptions, ModelSchema} from "./types"
 
@@ -21,6 +21,11 @@ export function ModelProvider<T extends object = any>({
   ...options
 }: Props<T>) {
   const model = useMemo(() => new Model(schema, options), [])
+
+  useEffect(() => {
+    // @ts-ignore
+    model._options = {...model._options, ...options}
+  })
 
   return (
     <ModelContext.Provider value={model as any}>
