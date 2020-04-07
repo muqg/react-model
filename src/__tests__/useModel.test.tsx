@@ -28,26 +28,6 @@ describe("Model hook", () => {
     expect(model.getField("foo").error).toBe("err")
   })
 
-  it("works with schema", () => {
-    const hook = renderHook(() => useModel({foo: {value: 1, error: "test"}}))
-    const model = hook.result.current
-
-    expect(model.getField("foo").value).toBe(1)
-    expect(model.getField("foo").error).toBe("test")
-  })
-
-  it("prefers schema over context", () => {
-    const hook = renderHook(
-      () => useModel<ProviderModelObject>({foo: {value: "schema"}}),
-      {
-        wrapper: Provider,
-      }
-    )
-    const model = hook.result.current
-
-    expect(model.getField("foo").value).toBe("schema")
-  })
-
   describe("selectors", () => {
     it("subscribes to changes when selecting a model property", () => {
       let model!: Model<any>

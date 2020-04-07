@@ -1,8 +1,7 @@
-import {useContext, useEffect, useMemo, useDebugValue} from "react"
+import {useContext, useDebugValue, useEffect} from "react"
 import {Model} from "./Model"
 import {ModelContext} from "./ModelProvider"
-import {ModelOptions, ModelSchema} from "./types"
-import {isObject} from "./util/ObjectUtils"
+import {ModelSchema} from "./types"
 import {useForceUpdate} from "./util/useForceUpdate"
 
 /**
@@ -21,34 +20,12 @@ export function useModel<
   T extends object,
   U extends keyof Model<T> = keyof Model<T>
 >(selector: U): Model<T>[U]
-/**
- * Create a model instance from schema.
- *
- * @param schema Model object schema.
- * @param options Options for the created model.
- */
-export function useModel<T extends object = any>(
-  schema: ModelSchema<T>,
-  options?: ModelOptions
-): Model<T>
 
 export function useModel(
-  schemaOrSelector?: ModelSchema | string,
-  options: Partial<ModelOptions> = {}
+  schemaOrSelector?: ModelSchema | string
 ): Model | Model[keyof Model] {
-  let debugValue: string | undefined
-
-  const contextModel = useContext(ModelContext)
-
-  const model = useMemo<Model>(() => {
-    if (isObject<ModelSchema>(schemaOrSelector)) {
-      debugValue = "From schema"
-      return new Model(schemaOrSelector, options)
-    } else {
-      debugValue = "From context"
-      return contextModel
-    }
-  }, [])
+  const model = useContext(ModelContext)
+  let debugValue: string | undefined = "From context"
 
   let result: any = model
   if (typeof schemaOrSelector === "string") {
