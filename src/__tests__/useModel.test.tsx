@@ -1,11 +1,11 @@
-import {fireEvent} from "@testing-library/react"
+import {fireEvent, render} from "@testing-library/react"
 import {renderHook} from "@testing-library/react-hooks"
 import React, {PropsWithChildren} from "react"
 import {Model} from "../Model"
 import {ModelProvider} from "../ModelProvider"
+import {useField} from "../useField"
 import {useModel} from "../useModel"
 import {renderStrict} from "../util/TestingUtils"
-import {useField} from "../useField"
 
 type ProviderModelObject = {foo: string}
 
@@ -147,38 +147,43 @@ describe("Model hook", () => {
     })
 
     it("does not allow private methods or properties to be selected", () => {
-      let subscribe!: any
+      console.error = jest.fn()
 
       const Component = () => {
-        subscribe = useModel("_subscribe")
+        useModel("_subscribe")
         return null
       }
 
-      renderStrict(
-        <ModelProvider schema={{foo: {value: 1}}}>
-          <Component />
-        </ModelProvider>
-      )
+      const renderComponent = () =>
+        render(
+          <ModelProvider schema={{foo: {value: 1}}}>
+            <Component />
+          </ModelProvider>
+        )
 
-      expect(subscribe).toBeUndefined()
+      expect(renderComponent).toThrowError(
+        "Attempting to select undefined model property '_subscribe'"
+      )
     })
 
-    it("returns undefined when selecting invalid method or property", () => {
-      let result!: any
+    it("throws when selecting invalid method or property", () => {
+      console.error = jest.fn()
 
       const Component = () => {
-        // @ts-ignore
-        result = useModel("invalid_key")
+        useModel("invalid_key" as any)
         return null
       }
 
-      renderStrict(
-        <ModelProvider schema={{foo: {value: 1}}}>
-          <Component />
-        </ModelProvider>
-      )
+      const renderComponent = () =>
+        render(
+          <ModelProvider schema={{foo: {value: 1}}}>
+            <Component />
+          </ModelProvider>
+        )
 
-      expect(result).toBeUndefined()
+      expect(renderComponent).toThrowError(
+        "Attempting to select undefined model property 'invalid_key'"
+      )
     })
 
     it("only updates when selected property changes", () => {

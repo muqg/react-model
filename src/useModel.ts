@@ -52,12 +52,17 @@ export function useModel(
 
   let result: any = model
   if (typeof schemaOrSelector === "string") {
-    debugValue = schemaOrSelector
+    result = undefined
 
     if (schemaOrSelector.indexOf("_") === -1) {
+      debugValue = schemaOrSelector
       result = model[schemaOrSelector]
-    } else {
-      result = undefined
+    }
+
+    if (result === undefined) {
+      throw new Error(
+        `Attempting to select undefined model property '${schemaOrSelector}'`
+      )
     }
   }
 
