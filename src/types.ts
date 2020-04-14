@@ -30,6 +30,13 @@ export type ModelOptions<T extends object = any> = {
   onSubmit: (model: Model<T>) => void
 
   /**
+   * Storage serves as a memory for the model's values where they can be saved
+   * and then loaded back when needed. Overhead and performance effect depends
+   * entirely on the storage driver implementation.
+   */
+  storage: ModelStorage
+
+  /**
    * Called when model is validated and allows for additional
    * and more specific validation to be performed.
    */
@@ -126,3 +133,22 @@ export type ModelSchemaFieldValidator<T = any, O extends object = any> = (
   value: T,
   modelValues: O
 ) => ModelValidationError
+
+/**
+ * The interface for model storage drivers. Any class implementing it or any
+ * object which matches it can be used as a custom storage driver.
+ */
+export interface ModelStorage {
+  /**
+   * Remove model data from storage.
+   */
+  clear(): void
+  /**
+   * Load model data from storage.
+   */
+  load(): object
+  /**
+   * Save model data to storage.
+   */
+  save(data: object): void
+}

@@ -1,12 +1,14 @@
-import {render, fireEvent} from "@testing-library/react"
-import {Model} from "../Model"
+import {fireEvent, render} from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import React from "react"
+import {Model} from "../Model"
+import {WebStorage} from "../WebStorage"
 
-console.warn = jest.fn()
+const storage = new WebStorage("test")
 
 beforeEach(() => {
   jest.clearAllMocks()
+  storage.clear()
 })
 
 describe("Model instance", () => {
@@ -82,6 +84,63 @@ describe("Model instance", () => {
       const model = new Model({}, {initialState: {test: true}})
       expect(model.state).toEqual({test: true})
     })
+
+    describe("with storage", () => {
+      type ModelObject = {
+        foo: string
+        nested: {item: string}
+        missing: string
+        diff: number
+      }
+
+      let model!: Model<ModelObject>
+
+      beforeEach(() => {
+        storage.save({
+          "diff": {value: "stored"},
+          "foo": {value: "initial"},
+          "nested.item": {value: "stored"},
+        })
+
+        model = new Model<ModelObject>(
+          {
+            foo: {value: "initial"},
+            nested: {item: {value: "initial"}},
+            missing: {value: "initial"},
+            diff: {value: 10},
+          },
+          {storage}
+        )
+      })
+
+      it("initializes values from storage", () => {
+        expect(model.getField("nested.item").value).toBe("stored")
+      })
+
+      it("marks fields as dirty when their storaged value differs from their initial one", () => {
+        expect(model.getField("foo").dirty).toBeFalsy()
+        expect(model.getField("missing").dirty).toBeFalsy()
+        expect(model.getField("nested.item").dirty).toBeTruthy()
+      })
+
+      it("does not set to value from storage if schema and storage types don't match", () => {
+        expect(model.getField("diff").value).toBe(10)
+      })
+
+      it("does not crash for corrupt storage data", () => {
+        storage.save({
+          name: "someone",
+          surname: null,
+        })
+
+        const model = new Model(
+          {name: {value: "john"}, surname: {value: "snow"}},
+          {storage}
+        )
+
+        expect(model.values).toEqual({name: "john", surname: "snow"})
+      })
+    })
   })
 
   describe("getField() method", () => {
@@ -152,8 +211,10 @@ describe("Model instance", () => {
     })
 
     it("warns when name is an empty string", () => {
+      const warn = jest.spyOn(console, "warn").mockImplementationOnce(() => {})
       model.setFieldValue("", 123)
-      expect(console.warn).toHaveBeenCalled()
+
+      expect(warn).toHaveBeenCalled()
     })
 
     describe("when set to a different value", () => {
@@ -250,6 +311,21 @@ describe("Model instance", () => {
         model.setFieldValue("nested.optional", "")
         expect(model.values.nested.optional).toBe("")
       })
+
+      it("updates storage", () => {
+        type ModelObject = {foo: number; nested: {test: number}}
+
+        const model = new Model<ModelObject>(
+          {foo: {value: 1}, nested: {test: {value: 2}}},
+          {storage}
+        )
+
+        const save = jest.spyOn(storage, "save")
+        model.setFieldValue("foo", 123)
+
+        // @ts-ignore
+        expect(save).toHaveBeenCalledWith(model._fields)
+      })
     })
 
     describe("when set to the same value", () => {
@@ -272,6 +348,21 @@ describe("Model instance", () => {
 
       it("does not call options.onChange callback", () => {
         expect(onChange).not.toHaveBeenCalled()
+      })
+
+      it("does not update storage", () => {
+        type ModelObject = {foo: number; nested: {test: number}}
+
+        const model = new Model<ModelObject>(
+          {foo: {value: 1}, nested: {test: {value: 2}}},
+          {storage}
+        )
+
+        const save = jest.spyOn(storage, "save")
+        model.setFieldValue("foo", model.getField("foo").value)
+
+        // @ts-ignore
+        expect(save).not.toHaveBeenCalledWith(model._fields)
       })
     })
   })
@@ -557,7 +648,7 @@ describe("Model instance", () => {
         onSubmit = jest.fn()
         model = new Model<SuccessModelObject>(
           {foo: {value: "initial"}},
-          {onSubmit}
+          {onSubmit, storage}
         )
 
         model.setFieldValue("foo", "changed")
@@ -605,6 +696,13 @@ describe("Model instance", () => {
 
         expect(submission).toHaveBeenCalledTimes(2)
       })
+
+      it("clears storage", async () => {
+        const clear = jest.spyOn(storage, "clear")
+        await model.submit(submission)
+
+        expect(clear).toHaveBeenCalled()
+      })
     })
 
     describe("when an exception is thrown", () => {
@@ -644,7 +742,7 @@ describe("Model instance", () => {
         onReset = jest.fn()
         model = new Model<ResetMethodModelObject>(
           {foo: {value: "initial"}},
-          {onReset}
+          {onReset, storage}
         )
         model.setFieldValue("foo", "changed")
 
@@ -706,6 +804,13 @@ describe("Model instance", () => {
       it("calls options.onReset callback", () => {
         expect(onReset).toHaveBeenCalledWith(model)
       })
+
+      it("clears storage", () => {
+        const clear = jest.spyOn(storage, "clear")
+        model.reset()
+
+        expect(clear).toHaveBeenCalled()
+      })
     })
 
     describe("when called with a field name", () => {
@@ -727,7 +832,7 @@ describe("Model instance", () => {
               optional: {value: undefined},
             },
           },
-          {}
+          {storage}
         )
 
         subscriber = jest.fn()
@@ -804,6 +909,14 @@ describe("Model instance", () => {
         expect(model.getField("foo").value).toBe("changed")
         expect(model.getField("nested.bar").value).toBe("initial")
         expect(model.getField("nested.bar2").value).toBe(0)
+      })
+
+      it("updates storage", () => {
+        const save = jest.spyOn(storage, "save")
+        model.reset("foo")
+
+        // @ts-ignore
+        expect(save).toHaveBeenCalledWith(model._fields)
       })
     })
   })

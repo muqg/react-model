@@ -25,6 +25,13 @@ const DefaultOptions: ModelOptions = {
   onChange: noop,
   onReset: noop,
   onSubmit: noop,
+  storage: {
+    clear: noop,
+    load: () => {
+      return {}
+    },
+    save: noop,
+  },
   validate: noop,
 }
 
@@ -220,8 +227,11 @@ export class Model<T extends object = any> implements Model<T> {
       this._performFieldValidation(field)
     }
 
+    const {onChange, storage} = this._options
+    storage.save(this._fields)
+    onChange(this)
+
     this._notify()
-    this._options.onChange(this)
   }
 
   /**
@@ -333,7 +343,9 @@ export class Model<T extends object = any> implements Model<T> {
           await result
         }
 
-        this._options.onSubmit(this)
+        const {onSubmit, storage} = this._options
+        storage.clear()
+        onSubmit(this)
 
         return result
       }
@@ -382,6 +394,7 @@ export class Model<T extends object = any> implements Model<T> {
   reset = (name?: string): void => {
     let shouldNotify = true
 
+    const {onReset, storage} = this._options
     if (name) {
       shouldNotify = this._for(name, ({name}) => {
         const fieldSchema = retrieve(this._schema, name)
@@ -391,20 +404,27 @@ export class Model<T extends object = any> implements Model<T> {
 
         this._registerField(name, fieldSchema)
       })
-      this._mem = {}
+
+      storage.save(this._fields)
     } else {
+      // Storage should be cleared before resetting or otherwise values will
+      // be pulled from storage instead of schema.
+      storage.clear()
+
       this._setupInitialState()
-      this._options.onReset(this)
+      onReset(this)
     }
 
     if (shouldNotify) {
+      this._mem = {}
       this._notify()
     }
   }
 
   private _setupInitialState() {
     this._clearState()
-    this._setupInitialFieldState()
+    this._initializeFields()
+    this._loadStorageValues()
   }
 
   private _clearState() {
@@ -413,7 +433,7 @@ export class Model<T extends object = any> implements Model<T> {
     this._state = this._options.initialState
   }
 
-  private _setupInitialFieldState(name = "") {
+  private _initializeFields(name = "") {
     const fieldSchema = retrieve<any>(this._schema, name)
 
     if (fieldSchema === undefined) {
@@ -421,9 +441,9 @@ export class Model<T extends object = any> implements Model<T> {
     }
 
     if (!isSchemaFieldObject(fieldSchema)) {
-      Object.keys(fieldSchema).forEach((k) =>
-        this._setupInitialFieldState(name ? `${name}.${k}` : k)
-      )
+      for (const key in fieldSchema) {
+        this._initializeFields(name ? `${name}.${key}` : key)
+      }
     } else {
       this._registerField(name, fieldSchema)
     }
@@ -454,6 +474,29 @@ export class Model<T extends object = any> implements Model<T> {
         this._mem.errors = {}
       }
       this._mem.errors[name] = error
+    }
+  }
+
+  private _loadStorageValues() {
+    const storageFields = this._options.storage.load()
+
+    for (const name in storageFields) {
+      // It should always be checked that the value at this key is an object in
+      // order to not crash when storage data is corrupt. For example for some
+      // reason the data at this key is set to something else, and instead of
+      // object values we end up with null or string or something else.
+      const currentStorageField = storageFields[name]
+      if (!isObject(currentStorageField)) {
+        return
+      }
+
+      const {value} = currentStorageField
+      const field = this._fields[name]
+      const fieldValue = field.value
+
+      if (field && typeof value === typeof fieldValue && value !== fieldValue) {
+        this._updateField(field, {value})
+      }
     }
   }
 
