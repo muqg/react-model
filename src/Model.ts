@@ -115,11 +115,16 @@ export class Model<T extends object = any> implements Model<T> {
     if (!values) {
       values = {}
 
-      Object.values(this._fields).forEach(({name, value}) => {
+      // A basic for-loop is used instead of a more readable implementation,
+      // such as Array.forEach(), since this property is in the hotpath and a
+      // basic for-loop turns to be the most performant implementation.
+      const fields = Object.values(this._fields)
+      for (let i = fields.length - 1; i >= 0; i -= 1) {
+        const {name, value} = fields[i]
         if (value !== undefined) {
           values = insert(values, name, value)
         }
-      })
+      }
 
       this._mem.values = values
     }
